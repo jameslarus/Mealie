@@ -77,10 +77,15 @@ const subpages = computed<MenuItem[]>(() => [
     value: "html",
   },
   {
-    icon: $globals.icons.autoFix,
-    text: i18n.t("recipe.import-with-ai"),
-    value: "ai",
-    hide: !group.value?.aiProviderSettings?.aiEnabled,
+    icon: $globals.icons.link,
+    text: i18n.t("recipe.bulk-json-import"),
+    value: "json",
+  },
+  {
+    icon: $globals.icons.fileImage,
+    text: i18n.t("recipe.create-from-images"),
+    value: "image",
+    hide: !group.value?.aiProviderSettings?.imageProviderEnabled,
   },
   {
     icon: $globals.icons.edit,

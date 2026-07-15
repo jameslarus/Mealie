@@ -9,6 +9,7 @@ import type {
   RecipeIn,
   CreateRecipe,
   RecipeAsset,
+  CreateRecipeByDataBulk,
   CreateRecipeByUrlBulk,
   ParsedIngredient,
   UpdateImageResponse,
@@ -41,6 +42,7 @@ const routes = {
   recipesTestScrapeUrl: `${prefix}/recipes/test-scrape-url`,
   recipesCreateUrl: `${prefix}/recipes/create/url/stream`,
   recipesCreateUrlBulk: `${prefix}/recipes/create/url/bulk`,
+  recipesCreateDataBulk: `${prefix}/recipes/create/data/bulk`,
   recipesCreateFromZip: `${prefix}/recipes/create/zip`,
   recipesCreateWithAI: `${prefix}/recipes/create/ai/stream`,
   recipesCreateFromHtmlOrJson: `${prefix}/recipes/create/html-or-json/stream`,
@@ -245,16 +247,11 @@ export class RecipeAPI extends BaseCRUDAPI<CreateRecipe, Recipe, RecipeIn> {
     return await this.requests.post<string>(routes.recipesCreateUrlBulk, payload);
   }
 
-  async createOneWithAI(
-    payload: {
-      content?: string | null;
-      url?: string | null;
-      images?: (Blob | File)[];
-      translateLanguage?: string | null;
-      createNewOrganizers?: boolean;
-    },
-    onProgress?: (message: string) => void,
-  ): Promise<RequestResponse<string>> {
+  async createManyByHtmlOrJson(payload: CreateRecipeByDataBulk) {
+    return await this.requests.post<string>(routes.recipesCreateDataBulk, payload);
+  }
+
+  async createOneFromImages(fileObjects: (Blob | File)[], translateLanguage: string | null = null) {
     const formData = new FormData();
 
     if (payload.content) {

@@ -147,10 +147,21 @@ class RecipeToolIn(RecipeTagIn):
             return v
 
 
+class CreateRecipeData(BaseModel):
+    file_name: str
+    data: str
+    include_categories: bool
+    include_tags: bool
+
+
 class CreateRecipeBulk(BaseModel):
     url: str
-    categories: list[RecipeCategory] | None = None
-    tags: list[RecipeTag] | None = None
+    include_categories: list[RecipeCategory] | None = None
+    include_tags: list[RecipeTag] | None = None
+
+
+class CreateRecipeByDataBulk(BaseModel):
+    inputs: list[CreateRecipeData]
 
 
 class CreateRecipeByUrlBulk(BaseModel):

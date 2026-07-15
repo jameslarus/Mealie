@@ -644,7 +644,13 @@
     "cover-image": "Cover image",
     "include-linked-recipes": "Include Linked Recipes",
     "include-linked-recipe-ingredients": "Include Linked Recipe Ingredients",
-    "toggle-recipe": "Toggle Recipe"
+    "toggle-recipe": "Toggle Recipe",
+    "bulk-scan-import": "Bulk JSON Import",
+    "bulk-json-import": "Bulk JSON Import",
+    "select-json-files": "Select files",
+    "bulk-json-import-description": "Select one or more files containing recipes in JSON format.",
+    "selected-json-files-count": "Number of selected files {count}.",
+    "import-json-files": "Import Files"
   },
   "recipe-finder": {
     "recipe-finder": "Recipe Finder",
@@ -1124,6 +1130,7 @@
       "already-set-up-bring-to-homepage": "I'm already set up, just bring me to the homepage",
       "common-settings-for-new-sites": "Here are some common settings for new sites",
       "setup-complete": "Setup Complete!",
+      "ai-providers-description": "Optionally configure AI providers for your group. AI providers enable features like creating recipes from images, importing recipes from videos, and enhanced ingredient parsing. You can always configure this later from your group settings.",
       "here-are-a-few-things-to-help-you-get-started": "Here are a few things to help you get started with Mealie",
       "restore-from-v1-backup": "Have a backup from a previous instance of Mealie v1? You can restore it here.",
       "manage-profile-or-get-invite-link": "Manage your own profile, or grab an invite link to share with others."

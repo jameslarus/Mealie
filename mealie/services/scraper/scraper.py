@@ -11,6 +11,7 @@ from mealie.pkgs import cache
 from mealie.repos.repository_factory import AllRepositories
 from mealie.schema.recipe import Recipe
 from mealie.schema.recipe.recipe import create_recipe_slug
+from mealie.schema.recipe.recipe import CreateRecipeByDataBulk
 from mealie.services.recipe.recipe_data_service import RecipeDataService
 from mealie.services.scraper.scraped_extras import ScrapedExtras
 
@@ -49,7 +50,10 @@ async def create_from_html(
     if not html:
         extracted_url = regex_search(r"(https?://|www\.)[^\s]+", url)
         if not extracted_url:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, {"details": ParserErrors.BAD_RECIPE_DATA.value})
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                {"details": ParserErrors.BAD_RECIPE_DATA.value},
+            )
         url = extracted_url.group(0)
 
     new_recipe, extras = await scraper.scrape(
@@ -112,4 +116,61 @@ async def finalize_scraped_recipe(
         recipe.name = f"No Recipe Name Found - {uuid4()!s}"
         recipe.slug = create_recipe_slug(recipe.name)
 
-    return recipe
+    return new_recipe, extras
+
+
+async def create_from_html_bulk(
+    url: str,
+    repos: AllRepositories,
+    translator: Translator,
+    html: str | None = None,
+    bulk: CreateRecipeByDataBulk = None,
+    on_progress: Callable[[str], Awaitable[None]] | None = None,
+) -> tuple[Recipe, ScrapedExtras | None]:
+    """Same as create_from_html but for bulk imports. Parse the recipe from the HTML or JSON data in the bulk import
+    and look for the image data among the bulk import files."""
+    scraper = RecipeScraper(repos, translator)
+
+    if not html:
+        extracted_url = regex_search(r"(https?://|www\.)[^\s]+", url)
+        if not extracted_url:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                {"details": ParserErrors.BAD_RECIPE_DATA.value},
+            )
+        url = extracted_url.group(0)
+
+    new_recipe, extras = await scraper.scrape(url, html, on_progress=on_progress)
+
+    if not new_recipe:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"details": ParserErrors.BAD_RECIPE_DATA.value})
+
+    new_recipe.id = uuid4()
+    logger = get_logger()
+    logger.debug(f"Image {new_recipe.image}")
+
+    recipe_data_service = RecipeDataService(new_recipe.id)
+
+    try:
+        if new_recipe.image:
+            if isinstance(new_recipe.image, list):
+                new_recipe.image = new_recipe.image[0]
+
+            if on_progress:
+                await on_progress(translator.t("recipe.create-progress.downloading-image"))
+            await recipe_data_service.scrape_image_bulk(new_recipe.image, bulk)  # type: ignore
+
+        if new_recipe.name is None:
+            new_recipe.name = "Untitled"
+
+        new_recipe.slug = slugify(new_recipe.name)
+        new_recipe.image = cache.new_key(4)
+    except Exception as e:
+        recipe_data_service.logger.exception(f"Error Scraping Image: {e}")
+        new_recipe.image = "no image"
+
+    if new_recipe.name is None or new_recipe.name == "":
+        new_recipe.name = f"No Recipe Name Found - {uuid4()!s}"
+        new_recipe.slug = slugify(new_recipe.name)
+
+    return new_recipe, extras

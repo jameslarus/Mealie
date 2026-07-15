@@ -39,6 +39,7 @@ from mealie.schema.make_dependable import make_dependable
 from mealie.schema.recipe import Recipe, ScrapeRecipe, ScrapeRecipeData
 from mealie.schema.recipe.recipe import (
     CreateRecipe,
+    CreateRecipeByDataBulk,
     CreateRecipeByUrlBulk,
     RecipeIn,
     RecipeLastMade,
@@ -455,6 +456,22 @@ class RecipeController(BaseRecipeController):
         bulk_scraper = RecipeBulkScraperService(self.service, self.repos, self.group, self.translator)
         report_id = bulk_scraper.get_report_id()
         bg_tasks.add_task(bulk_scraper.scrape, bulk)
+
+        self.publish_event(
+            event_type=EventTypes.recipe_created,
+            document_data=EventRecipeBulkReportData(operation=EventOperation.create, report_id=report_id),
+            group_id=self.group_id,
+            household_id=self.household_id,
+        )
+
+        return {"reportId": report_id}
+
+    @router.post("/create/data/bulk", status_code=202)
+    def create_recipe_data_bulk(self, bulk: CreateRecipeByDataBulk, bg_tasks: BackgroundTasks):
+        """Queues multiple raw HTML or schema.org Recipe JSON documents for import."""
+        bulk_scraper = RecipeBulkScraperService(self.service, self.repos, self.group, self.translator)
+        report_id = bulk_scraper.get_report_id("Bulk JSON Import")
+        bg_tasks.add_task(bulk_scraper.scrape_data_bulk, bulk)
 
         self.publish_event(
             event_type=EventTypes.recipe_created,

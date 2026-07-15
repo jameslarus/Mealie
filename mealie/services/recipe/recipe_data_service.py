@@ -6,7 +6,7 @@ from pathlib import Path
 from pydantic import UUID4
 
 from mealie.pkgs import img, safehttp
-from mealie.schema.recipe.recipe import Recipe
+from mealie.schema.recipe.recipe import CreateRecipeByDataBulk, Recipe
 from mealie.schema.recipe.recipe_image_types import RecipeImageTypes
 from mealie.services._base_service import BaseService
 
@@ -82,29 +82,38 @@ class RecipeDataService(BaseService):
         except Exception as e:
             self.logger.exception(f"Failed to delete recipe data: {e}")
 
-    def write_image(self, file_data: bytes | Path, extension: str, image_dir: Path | None = None) -> Path:
+    def write_image(
+        self,
+        file_data: str | bytes | Path,
+        extension: str,
+        image_dir: Path | None = None,
+        skip_minification: bool = False,
+    ) -> Path:
         if not image_dir:
             image_dir = self.dir_image
 
         extension = extension.replace(".", "")
         image_path = image_dir.joinpath(f"original.{extension}")
         image_path.unlink(missing_ok=True)
-
         if isinstance(file_data, Path):
             shutil.copy2(file_data, image_path)
         elif isinstance(file_data, bytes):
             with open(image_path, "ab") as f:
                 f.write(file_data)
+        elif isinstance(file_data, str):
+            with open(image_path, "ab") as f:
+                f.write(file_data.encode("latin1"))
         else:
             with open(image_path, "ab") as f:
                 shutil.copyfileobj(file_data, f)
 
-        try:
-            self.minifier.minify(image_path)
-        except Exception:
-            # Remove the partially-written file so corrupt images don't persist on disk.
-            image_path.unlink(missing_ok=True)
-            raise
+        if not skip_minification:
+            try:
+                self.minifier.minify(image_path)
+            except Exception:
+                # Remove the partially-written file so corrupt images don't persist on disk.
+                image_path.unlink(missing_ok=True)
+                raise
 
         return image_path
 
@@ -186,13 +195,72 @@ class RecipeDataService(BaseService):
         if not image_url_str:
             raise ValueError(f"image url could not be parsed from input: {image_url}")
 
-        downloaded = await self.fetch_image(image_url_str)
+        ext = image_url_str.split(".")[-1]
 
-        if downloaded is None:
+        if ext not in img.IMAGE_EXTENSIONS:
+            ext = "jpg"  # Guess the extension
+
+        file_name = f"{self.recipe_id!s}.{ext}"
+        file_path = Recipe.directory_from_id(self.recipe_id).joinpath("images", file_name)
+
+        try:
+            # FlareSolverr returns HTML, not image bytes, so it can't serve an image download.
+            r = await safehttp.resilient_fetch(image_url_str, allow_flaresolverr=False)
+        except Exception:
+            self.logger.exception("Fatal Image Request Exception")
             return None
 
-        content, extension = downloaded
+        if r is None:
+            # Every impersonation was rejected, or the server returned an error status.
+            return None
 
-        # The extension only labels the bytes on their way into the minifier, which sniffs the
-        # real format and converts everything to webp regardless.
-        return self.write_image(content, extension)
+        content_type = r.headers.get("content-type", "")
+
+        if "image" not in content_type:
+            self.logger.error(f"Content-Type: {content_type} is not an image")
+            raise NotAnImageError(f"Content-Type {content_type} is not an image")
+
+        self.logger.debug(f"File Name Suffix {file_path.suffix}")
+        self.write_image(r.read(), file_path.suffix)
+        file_path.unlink(missing_ok=True)
+
+    async def scrape_image_bulk(
+        self, image_url: str | dict[str, str] | list[str], bulk: CreateRecipeByDataBulk
+    ) -> None:
+        self.logger.info(f"Image URL: {image_url}")
+
+        image_url_str = ""
+
+        if isinstance(image_url, str):  # Handles String Types
+            image_url_str = image_url
+
+        elif isinstance(image_url, list):  # Handles List Types
+            # Multiple images have been defined in the schema - usually different resolutions
+            # Typically would be in smallest->biggest order, but can't be certain so test each.
+            # 'Google will pick the best image to display in Search results based on the aspect ratio and resolution.'
+            image_url_str, _ = await largest_content_len(image_url)
+
+        elif isinstance(image_url, dict):  # Handles Dictionary Types
+            for key in image_url:
+                if key == "url":
+                    image_url_str = image_url.get("url", "")
+
+        if not image_url_str:
+            raise ValueError(f"image url could not be parsed from input: {image_url}")
+
+        ext = image_url_str.split(".")[-1]
+
+        if "." + ext not in img.IMAGE_EXTENSIONS:
+            ext = "jpg"  # Guess the extension
+
+        file_name = f"{self.recipe_id!s}.{ext}"
+        file_path = Recipe.directory_from_id(self.recipe_id).joinpath("images", file_name)
+
+        self.logger.debug(f"File Name Suffix {file_path.suffix}")
+        for inp in bulk.inputs:
+            if inp.file_name == image_url_str:
+                self.logger.debug(f"Found image in bulk import files: {inp.file_name}")
+                self.write_image(inp.data, file_path.suffix, skip_minification=True)
+                file_path.unlink(missing_ok=True)
+                return
+        self.logger.debug(f"Cannot find image in bulk import files: {image_url_str}.")

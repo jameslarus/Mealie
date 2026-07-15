@@ -19,7 +19,7 @@ class ImageFormat:
 
 JPG = ImageFormat(".jpg", "JPEG", ["RGB"])
 WEBP = ImageFormat(".webp", "WEBP", ["RGB", "RGBA"])
-IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".avif"}
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".avif", ".gif"}
 
 
 def sizeof_fmt(file_path: Path, decimal_places=2):

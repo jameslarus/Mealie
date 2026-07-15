@@ -2,6 +2,7 @@
 from .recipe import (
     CreateRecipe,
     CreateRecipeBulk,
+    CreateRecipeByDataBulk,
     CreateRecipeByUrlBulk,
     Recipe,
     RecipeCategory,
@@ -190,6 +191,7 @@ __all__ = [
     "RecipeSuggestionSubstitutedFood",
     "CreateRecipe",
     "CreateRecipeBulk",
+    "CreateRecipeByDataBulk",
     "CreateRecipeByUrlBulk",
     "Recipe",
     "RecipeCategory",

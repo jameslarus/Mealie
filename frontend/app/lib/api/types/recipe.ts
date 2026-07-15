@@ -109,6 +109,12 @@ export interface CreateRecipeBulk {
   categories?: RecipeCategory[] | null;
   tags?: RecipeTag[] | null;
 }
+export interface CreateRecipeDataBulk {
+  file_name: string;
+  data: string;
+  categories?: RecipeCategory[] | null;
+  tags?: RecipeTag[] | null;
+}
 export interface RecipeCategory {
   id?: string | null;
   groupId?: string | null;
@@ -129,6 +135,9 @@ export interface CreateRecipeByUrlBulk {
 export interface CreateRecipeIngredientSubstitution {
   substituteFoodId?: string | null;
   note?: string | null;
+}
+export interface CreateRecipeByDataBulk {
+  inputs: CreateRecipeDataBulk[];
 }
 export interface DeleteRecipes {
   recipes: string[];
@@ -636,7 +645,7 @@ export interface ScrapeRecipeTest {
   url: string;
   useOpenAI?: boolean;
 }
-export interface SlugResponse {}
+export interface SlugResponse { }
 export interface SubstitutionBase {
   substituteFoodId?: string | null;
   note?: string | null;
