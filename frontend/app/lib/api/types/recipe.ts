@@ -111,7 +111,7 @@ export interface CreateRecipeBulk {
 }
 export interface CreateRecipeDataBulk {
   file_name: string;
-  data: string;
+  data: string; // base64 encoded string
   categories?: RecipeCategory[] | null;
   tags?: RecipeTag[] | null;
 }

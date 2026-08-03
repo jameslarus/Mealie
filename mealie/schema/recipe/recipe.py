@@ -147,9 +147,9 @@ class RecipeToolIn(RecipeTagIn):
             return v
 
 
-class CreateRecipeData(BaseModel):
+class CreateRecipeDataBulk(BaseModel):
     file_name: str
-    data: str
+    data: str  # base64 encoded string
     include_categories: bool
     include_tags: bool
 
@@ -161,7 +161,7 @@ class CreateRecipeBulk(BaseModel):
 
 
 class CreateRecipeByDataBulk(BaseModel):
-    inputs: list[CreateRecipeData]
+    inputs: list[CreateRecipeDataBulk]
 
 
 class CreateRecipeByUrlBulk(BaseModel):

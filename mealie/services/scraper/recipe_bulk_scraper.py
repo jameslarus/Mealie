@@ -1,4 +1,5 @@
 import asyncio
+from base64 import b64decode
 
 from pydantic import UUID4
 
@@ -135,11 +136,12 @@ class RecipeBulkScraperService(BaseService):
             async with sem:
                 try:
                     if file_name.lower().endswith(".json"):
-                        stripped_data = data.lstrip()
+                        decoded_data = b64decode(data).decode("utf-8")
+                        stripped_data = decoded_data.lstrip()
                         html = (
                             RecipeScraperPackage.ld_json_to_html(stripped_data)
                             if stripped_data.startswith("{")
-                            else data
+                            else decoded_data
                         )
                         recipe, extras = await create_from_html_bulk("", self.repos, self.translator, html, bulk)
                         return recipe, extras

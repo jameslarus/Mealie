@@ -112,7 +112,7 @@ async function importFiles() {
   state.loading = true;
   try {
     const inputs = await Promise.all(selectedFiles.value.map(async file => ({
-      data: await file.text(),
+      data: (await file.bytes()).toBase64(),
       file_name: file.name,
       include_tags: importKeywordsAsTags.value,
       include_categories: importCategories.value,
