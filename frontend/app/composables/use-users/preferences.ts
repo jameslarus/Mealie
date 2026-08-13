@@ -34,6 +34,9 @@ export interface UserRecipePreferences {
   filterNull: boolean;
   sortIcon: string;
   useMobileCards: boolean;
+  displayAsList: boolean;
+  useFixedListOrder: boolean;
+  manualRecipeOrder: string[];
 }
 
 export interface UserShoppingListPreferences {

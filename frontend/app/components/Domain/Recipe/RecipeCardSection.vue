@@ -95,18 +95,23 @@
       </v-menu>
       <ContextMenu
         v-if="!$vuetify.display.smAndDown"
-        :items="[
-          {
-            title: $t('general.toggle-view'),
-            icon: $globals.icons.eye,
-            event: 'toggle-dense-view',
-          },
-        ]"
-        @toggle-dense-view="toggleMobileCards()"
+        :items="viewMenuItems"
+        @select-dense-card-view="selectCardView(true)"
+        @select-large-card-view="selectCardView(false)"
+        @select-fixed-list-view="selectListView(true)"
+        @select-sortable-list-view="selectListView(false)"
       />
     </v-row>
     <div v-if="recipes && ready">
-      <div class="mt-2">
+      <RecipeSortableList
+        v-if="isListView"
+        class="mt-2"
+        :recipes="recipes"
+        :use-fixed-list="useFixedList"
+        :manual-order="preferences.manualRecipeOrder"
+        @reorder="saveManualRecipeOrder"
+      />
+      <div v-else class="mt-2">
         <v-row v-if="!useMobileCards">
           <v-col
             v-for="recipe in recipes"
@@ -152,7 +157,7 @@
           </v-col>
         </v-row>
       </div>
-      <v-card v-intersect="infiniteScroll" variant="flat" />
+      <v-card v-if="isCardView" v-intersect="infiniteScroll" variant="flat" />
     </div>
     <v-fade-transition>
       <AppLoader
@@ -169,11 +174,14 @@
 import { useThrottleFn } from "@vueuse/core";
 import RecipeCard from "./RecipeCard.vue";
 import RecipeCardMobile from "./RecipeCardMobile.vue";
+import RecipeSortableList from "./RecipeSortableList.vue";
 import { useLoggedInState } from "~/composables/use-logged-in-state";
 import { useLazyRecipes } from "~/composables/recipes";
 import type { Recipe } from "~/lib/api/types/recipe";
 import { useUserSortPreferences } from "~/composables/use-users/preferences";
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
+import { mergeVisibleRecipeOrder } from "~/lib/api/user/recipes/recipe-list-order";
+import type { ContextMenuItem } from "~/composables/use-context-presents";
 
 const REPLACE_RECIPES_EVENT = "replaceRecipes";
 const APPEND_RECIPES_EVENT = "appendRecipes";
@@ -186,6 +194,7 @@ interface Props {
   singleColumn?: boolean;
   recipes?: Recipe[];
   query?: RecipeSearchQuery | null;
+  allowListView?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   disableToolbar: false,
@@ -195,6 +204,7 @@ const props = withDefaults(defineProps<Props>(), {
   singleColumn: false,
   recipes: () => [],
   query: null,
+  allowListView: true,
 });
 
 const emit = defineEmits<{
@@ -216,9 +226,46 @@ const EVENTS = {
 
 const auth = useMealieAuth();
 const { $globals } = useNuxtApp();
+const i18n = useI18n();
 const { isOwnGroup } = useLoggedInState();
 const useMobileCards = computed(() => {
   return display.smAndDown.value || preferences.value.useMobileCards;
+});
+const isListView = computed(() => {
+  return props.allowListView && preferences.value.displayAsList;
+});
+const isCardView = computed(() => {
+  return !isListView.value;
+});
+const useFixedList = computed(() => {
+  return props.allowListView && preferences.value.useFixedListOrder;
+});
+
+const viewMenuItems = computed(() => {
+  const items: ContextMenuItem[] = [];
+  if (props.allowListView) {
+    items.push({
+      title: i18n.t("general.fixed-list-view"),
+      icon: $globals.icons.lock,
+      event: "select-fixed-list-view",
+    });
+    items.push({
+      title: i18n.t("general.list-view"),
+      icon: $globals.icons.formatListCheck,
+      event: "select-sortable-list-view",
+    });
+  }
+  items.push({
+    title: i18n.t("general.card-view"),
+    icon: $globals.icons.viewGridCompact,
+    event: "select-dense-card-view",
+  });
+  items.push({
+    title: i18n.t("general.large-card-view"),
+    icon: $globals.icons.viewGrid,
+    event: "select-large-card-view",
+  });
+  return items;
 });
 
 const displayTitleIcon = computed(() => {
@@ -258,7 +305,7 @@ const queryFilter = computed(() => {
   // }
 });
 
-async function fetchRecipes(pageCount = 1) {
+async function fetchRecipes(pageCount = 1, fetchAll = false) {
   const orderDir = props.query?.orderDirection || preferences.value.orderDirection;
   const orderByNullPosition = props.query?.orderByNullPosition || orderDir === "asc" ? "first" : "last";
   const orderBy = props.query?.orderBy || preferences.value.orderBy;
@@ -267,8 +314,8 @@ async function fetchRecipes(pageCount = 1) {
     localQuery._searchSeed = randomSeed.value;
   }
   return await fetchMore(
-    page.value,
-    perPage * pageCount,
+    fetchAll ? 1 : page.value,
+    fetchAll ? -1 : perPage * pageCount,
     orderBy,
     orderDir,
     orderByNullPosition,
@@ -454,8 +501,21 @@ async function navigateRandom() {
   router.push(`/g/${groupSlug.value}/r/${recipe.slug}`);
 }
 
-function toggleMobileCards() {
-  preferences.value.useMobileCards = !preferences.value.useMobileCards;
+function selectCardView(denseCards: boolean) {
+  preferences.value.displayAsList = false;
+  preferences.value.useMobileCards = denseCards;
+}
+
+async function selectListView(fixedList: boolean) {
+  preferences.value.displayAsList = true;
+  preferences.value.useFixedListOrder = fixedList;
+}
+
+function saveManualRecipeOrder(recipeIds: string[]) {
+  preferences.value.manualRecipeOrder = mergeVisibleRecipeOrder(
+    preferences.value.manualRecipeOrder,
+    recipeIds,
+  );
 }
 </script>
 

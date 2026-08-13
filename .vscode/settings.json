@@ -9,8 +9,11 @@
     "compression",
     "hkotel",
     "nextcloud",
+    "Nuxt",
     "performant",
     "postgres",
+    "vuetify",
+    "vueuse",
     "webp"
   ],
   "editor.codeActionsOnSave": {

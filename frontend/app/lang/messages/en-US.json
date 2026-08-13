@@ -177,7 +177,11 @@
     "date-updated": "Date Updated",
     "key": "Key",
     "value": "Value",
-    "cant-create-permission": "Can't create. Please contact your administrator to get permission."
+    "cant-create-permission": "Can't create. Please contact your administrator to get permission.",
+    "card-view": "Cards",
+    "list-view": "List",
+    "fixed-list-view": "Fixed List",
+    "large-card-view": "Large Cards"
   },
   "group": {
     "create-group": "Create Group",
