@@ -39,6 +39,7 @@
       <tr
         v-for="recipe in displayRecipes"
         :key="recipe.id || recipe.slug"
+        @click="goToRecipe(recipe)"
       >
         <td>
           <NuxtLink
@@ -105,6 +106,10 @@ watch(
   refreshDisplayRecipes,
   { deep: true, immediate: true },
 );
+
+function goToRecipe(recipe: Recipe) {
+  location.href = `/g/${groupSlug.value}/r/${recipe.slug}`;
+}
 
 function sortBy(field: RecipeListSortField) {
   if (sortField.value === field) {
