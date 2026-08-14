@@ -98,8 +98,7 @@
         :items="viewMenuItems"
         @select-dense-card-view="selectCardView(true)"
         @select-large-card-view="selectCardView(false)"
-        @select-fixed-list-view="selectListView(true)"
-        @select-sortable-list-view="selectListView(false)"
+        @select-list-view="selectListView()"
       />
     </v-row>
     <div v-if="recipes && ready">
@@ -107,9 +106,6 @@
         v-if="isListView"
         class="mt-2"
         :recipes="recipes"
-        :use-fixed-list="useFixedList"
-        :manual-order="preferences.manualRecipeOrder"
-        @reorder="saveManualRecipeOrder"
       />
       <div v-else class="mt-2">
         <v-row v-if="!useMobileCards">
@@ -194,7 +190,6 @@ interface Props {
   singleColumn?: boolean;
   recipes?: Recipe[];
   query?: RecipeSearchQuery | null;
-  allowListView?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   disableToolbar: false,
@@ -204,7 +199,6 @@ const props = withDefaults(defineProps<Props>(), {
   singleColumn: false,
   recipes: () => [],
   query: null,
-  allowListView: true,
 });
 
 const emit = defineEmits<{
@@ -232,29 +226,19 @@ const useMobileCards = computed(() => {
   return display.smAndDown.value || preferences.value.useMobileCards;
 });
 const isListView = computed(() => {
-  return props.allowListView && preferences.value.displayAsList;
+  return preferences.value.displayAsList;
 });
 const isCardView = computed(() => {
   return !isListView.value;
 });
-const useFixedList = computed(() => {
-  return props.allowListView && preferences.value.useFixedListOrder;
-});
 
 const viewMenuItems = computed(() => {
   const items: ContextMenuItem[] = [];
-  if (props.allowListView) {
-    items.push({
-      title: i18n.t("general.fixed-list-view"),
-      icon: $globals.icons.lock,
-      event: "select-fixed-list-view",
-    });
-    items.push({
-      title: i18n.t("general.list-view"),
-      icon: $globals.icons.formatListCheck,
-      event: "select-sortable-list-view",
-    });
-  }
+  items.push({
+    title: i18n.t("general.list-view"),
+    icon: $globals.icons.formatListCheck,
+    event: "select-list-view",
+  });
   items.push({
     title: i18n.t("general.card-view"),
     icon: $globals.icons.viewGridCompact,
@@ -506,16 +490,8 @@ function selectCardView(denseCards: boolean) {
   preferences.value.useMobileCards = denseCards;
 }
 
-async function selectListView(fixedList: boolean) {
+async function selectListView() {
   preferences.value.displayAsList = true;
-  preferences.value.useFixedListOrder = fixedList;
-}
-
-function saveManualRecipeOrder(recipeIds: string[]) {
-  preferences.value.manualRecipeOrder = mergeVisibleRecipeOrder(
-    preferences.value.manualRecipeOrder,
-    recipeIds,
-  );
 }
 </script>
 

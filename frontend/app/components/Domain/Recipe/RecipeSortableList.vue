@@ -2,32 +2,29 @@
   <v-table class="RecipeSortableList" hover>
     <thead>
       <tr>
-        <th class="RecipeSortableList__handle" />
-        <th v-if="!props.useFixedList" :aria-sort="ariaSort('name')">
-          <v-btn variant="text" class="px-0" @click="sortBy('name')">
+        <th :aria-sort="ariaSort('name')">
+          <v-btn variant="text" class="px-0 font-weight-bold" @click="sortBy('name')">
             {{ $t("general.title") }}
-            <v-icon v-if="sortField === 'name'" end size="small">
+            <v-icon v-if="sortField === 'name'" end size="large">
               {{ sortIcon }}
             </v-icon>
           </v-btn>
         </th>
-        <th v-else>
-          <span variant="text" class="px-0">
-            {{ $t("general.title") }}
-          </span>
-        </th>
-        <th v-if="!props.useFixedList" :aria-sort="ariaSort('category')">
-          <v-btn variant="text" class="px-0" @click="sortBy('category')">
-            {{ $t("category.category") }}
-            <v-icon v-if="sortField === 'category'" end size="small">
+        <th :aria-sort="ariaSort('category')">
+          <v-btn variant="text" class="px-0 font-weight-bold" @click="sortBy('category')">
+            {{ $t("category.categories") }}
+            <v-icon v-if="sortField === 'category'" end size="large">
               {{ sortIcon }}
             </v-icon>
           </v-btn>
         </th>
-        <th v-else>
-          <span variant="text" class="px-0">
-            {{ $t("category.category") }}
-          </span>
+        <th :aria-sort="ariaSort('rating')">
+          <v-btn variant="text" class="px-0 font-weight-bold" @click="sortBy('rating')">
+            {{ $t("general.rating") }}
+            <v-icon v-if="sortField === 'rating'" end size="large">
+              {{ sortIcon }}
+            </v-icon>
+          </v-btn>
         </th>
       </tr>
     </thead>
@@ -43,16 +40,6 @@
         v-for="recipe in displayRecipes"
         :key="recipe.id || recipe.slug"
       >
-        <td class="RecipeSortableList__handle">
-          <v-icon
-            v-if="props.useFixedList"
-            class="RecipeSortableList__drag-handle"
-            :aria-label="$t('general.reorder')"
-            tabindex="0"
-          >
-            {{ $globals.icons.arrowUpDown }}
-          </v-icon>
-        </td>
         <td>
           <NuxtLink
             class="RecipeSortableList__link"
@@ -62,6 +49,16 @@
           </NuxtLink>
         </td>
         <td>{{ recipeCategoryLabel(recipe) || "—" }}</td>
+        <td>
+          <v-rating
+            v-if="recipe.rating !== undefined"
+            v-model="recipe.rating"
+            readonly
+            density="compact"
+            size="small"
+          />
+          <span v-else>—</span>
+        </td>
       </tr>
     </VueDraggable>
   </v-table>
@@ -71,7 +68,6 @@
 import { VueDraggable } from "vue-draggable-plus";
 import type { Recipe } from "~/lib/api/types/recipe";
 import {
-  applyManualRecipeOrder,
   recipeCategoryLabel,
   sortRecipeList,
   type RecipeListSortDirection,
@@ -80,8 +76,6 @@ import {
 
 interface Props {
   recipes: Recipe[];
-  useFixedList: boolean;
-  manualOrder: string[];
 }
 
 const props = defineProps<Props>();
@@ -103,13 +97,11 @@ const sortIcon = computed(() => sortDirection.value === "asc"
   : $globals.icons.sortAlphabeticalDescending);
 
 function refreshDisplayRecipes() {
-  displayRecipes.value = props.useFixedList
-    ? applyManualRecipeOrder(props.recipes, props.manualOrder)
-    : sortRecipeList(props.recipes, sortField.value, sortDirection.value);
+  displayRecipes.value = sortRecipeList(props.recipes, sortField.value, sortDirection.value);
 }
 
 watch(
-  [() => props.recipes, () => props.useFixedList, () => props.manualOrder],
+  [() => props.recipes],
   refreshDisplayRecipes,
   { deep: true, immediate: true },
 );
