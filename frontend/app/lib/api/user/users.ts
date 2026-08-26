@@ -10,6 +10,7 @@ import type {
   UserOut,
   UserRatingOut,
   UserRatingSummary,
+  UserScratchPadRecipe,
 } from "~/lib/api/types/user";
 
 export interface UserRatingsSummaries {
@@ -25,6 +26,8 @@ const prefix = "/api";
 const routes = {
   usersSelf: `${prefix}/users/self`,
   ratingsSelf: `${prefix}/users/self/ratings`,
+  scratchPadSelf: `${prefix}/users/self/scratchpad`,
+  scratchPadOrder: `${prefix}/users/self/scratchpad/order`,
   passwordReset: `${prefix}/users/reset-password`,
   passwordChange: `${prefix}/users/password`,
   users: `${prefix}/users`,
@@ -38,6 +41,7 @@ const routes = {
   usersIdRatingsSlug: (id: string, slug: string) => `${prefix}/users/${id}/ratings/${slug}`,
   usersSelfFavoritesId: (id: string) => `${prefix}/users/self/favorites/${id}`,
   usersSelfRatingsId: (id: string) => `${prefix}/users/self/ratings/${id}`,
+  usersSelfScratchPadRecipe: (recipeId: string) => `${prefix}/users/self/scratchpad/${recipeId}`,
 
   usersApiTokens: `${prefix}/users/api-tokens`,
   usersApiTokensTokenId: (token_id: string | number) => `${prefix}/users/api-tokens/${token_id}`,
@@ -73,6 +77,24 @@ export class UserApi extends BaseCRUDAPI<UserIn, UserOut, UserBase> {
 
   async getSelfRatings() {
     return await this.requests.get<UserRatingsSummaries>(routes.ratingsSelf);
+  }
+
+  async getScratchPad() {
+    return await this.requests.get<UserScratchPadRecipe[]>(routes.scratchPadSelf);
+  }
+
+  async addToScratchPad(recipeId: string) {
+    return await this.requests.post<UserScratchPadRecipe>(routes.usersSelfScratchPadRecipe(recipeId), {});
+  }
+
+  async reorderScratchPad(recipeIds: string[]) {
+    return await this.requests.put<UserScratchPadRecipe[], { recipeIds: string[] }>(routes.scratchPadOrder, {
+      recipeIds,
+    });
+  }
+
+  async removeFromScratchPad(recipeId: string) {
+    return await this.requests.delete(routes.usersSelfScratchPadRecipe(recipeId));
   }
 
   async changePassword(changePassword: ChangePassword) {

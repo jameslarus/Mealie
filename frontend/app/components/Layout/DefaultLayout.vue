@@ -82,6 +82,9 @@
           </template>
         </v-list>
       </v-menu>
+      <template #scratchpad>
+        <RecipeScratchPad v-if="isOwnGroup" />
+      </template>
     </AppSidebar>
     <v-main class="pt-12">
       <v-scroll-x-transition>
@@ -100,6 +103,7 @@ import { useGroupSelf } from "~/composables/use-groups";
 import { useCookbookPreferences } from "~/composables/use-users/preferences";
 import { useCookbookStore, usePublicCookbookStore } from "~/composables/store/use-cookbook-store";
 import type { ReadCookBook } from "~/lib/api/types/cookbook";
+import RecipeScratchPad from "~/components/Domain/Recipe/RecipeScratchPad.vue";
 
 const i18n = useI18n();
 const { $globals } = useNuxtApp();

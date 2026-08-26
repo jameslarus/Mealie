@@ -1,5 +1,5 @@
 <template>
-  <v-table class="RecipeSortableList" hover>
+  <v-table class="recipe-sortable-list" hover>
     <thead>
       <tr>
         <th :aria-sort="ariaSort('name')">
@@ -31,7 +31,7 @@
     <VueDraggable
       v-model="displayRecipes"
       tag="tbody"
-      handle=".RecipeSortableList__drag-handle"
+      handle=".recipe-sortable-list__drag-handle"
       :delay="250"
       :delay-on-touch-only="true"
       @end="saveCustomOrder"
@@ -43,8 +43,10 @@
       >
         <td>
           <NuxtLink
-            class="RecipeSortableList__link"
+            class="recipe-sortable-list__link"
             :to="`/g/${groupSlug}/r/${recipe.slug}`"
+            draggable="true"
+            @dragstart="startRecipeDrag($event, recipe)"
           >
             {{ recipe.name }}
           </NuxtLink>
@@ -68,11 +70,12 @@
 <script setup lang="ts">
 import { VueDraggable } from "vue-draggable-plus";
 import type { Recipe } from "~/lib/api/types/recipe";
+import { setRecipeDragData } from "~/lib/recipe-drag";
 import {
   recipeCategoryLabel,
-  sortRecipeList,
   type RecipeListSortDirection,
   type RecipeListSortField,
+  sortRecipeList,
 } from "~/lib/api/user/recipes/recipe-list-order";
 
 interface Props {
@@ -102,7 +105,7 @@ function refreshDisplayRecipes() {
 }
 
 watch(
-  [() => props.recipes],
+  [() => props.recipes, sortField, sortDirection],
   refreshDisplayRecipes,
   { deep: true, immediate: true },
 );
@@ -137,28 +140,34 @@ function saveCustomOrder() {
       .filter((id): id is string => Boolean(id)),
   );
 }
+
+function startRecipeDrag(event: DragEvent, recipe: Recipe) {
+  if (recipe.id) {
+    setRecipeDragData(event, { id: recipe.id });
+  }
+}
 </script>
 
 <style scoped>
-.RecipeSortableList__handle {
+.recipe-sortable-list__handle {
   width: 3rem;
 }
 
-.RecipeSortableList__drag-handle {
+.recipe-sortable-list__drag-handle {
   cursor: grab;
 }
 
-.RecipeSortableList__drag-handle:active {
+.recipe-sortable-list__drag-handle:active {
   cursor: grabbing;
 }
 
-.RecipeSortableList__link {
+.recipe-sortable-list__link {
   color: inherit;
   font-weight: 500;
   text-decoration: none;
 }
 
-.RecipeSortableList__link:hover {
+.recipe-sortable-list__link:hover {
   text-decoration: underline;
 }
 </style>

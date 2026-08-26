@@ -10,8 +10,10 @@
         :style="{ cursor }"
         hover
         height="100%"
+        :draggable="isOwnGroup"
         :to="$attrs.selected ? undefined : recipeRoute"
         @click="$emit('selected')"
+        @dragstart="startDrag"
       >
         <v-img
           v-if="vertical"
@@ -138,6 +140,7 @@ import RecipeChips from "./RecipeChips.vue";
 import RecipeContextMenu from "./RecipeContextMenu/RecipeContextMenu.vue";
 import RecipeFavoriteBadge from "./RecipeFavoriteBadge.vue";
 import type { ContextMenuItem } from "./RecipeContextMenu/RecipeContextMenu.vue";
+import { setRecipeDragData } from "~/lib/recipe-drag";
 
 interface Props {
   name: string;
@@ -181,6 +184,12 @@ const recipeRoute = computed<string>(() => {
   return showRecipeContent.value ? `/g/${groupSlug.value}/r/${props.slug}` : "";
 });
 const cursor = computed(() => showRecipeContent.value ? "pointer" : "auto");
+
+function startDrag(event: DragEvent) {
+  if (isOwnGroup.value && props.recipeId) {
+    setRecipeDragData(event, { id: props.recipeId });
+  }
+}
 </script>
 
 <style scoped>

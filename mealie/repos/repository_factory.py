@@ -80,6 +80,7 @@ from .repository_group import RepositoryGroup
 from .repository_meals import RepositoryMeals
 from .repository_recipes import RepositoryRecipes
 from .repository_shopping_list import RepositoryShoppingList
+from .repository_user_scratchpad import RepositoryUserScratchPad
 from .repository_users import RepositoryUserRatings, RepositoryUsers
 
 PK_ID = "id"
@@ -252,6 +253,10 @@ class AllRepositories:
     @cached_property
     def user_ratings(self) -> RepositoryUserRatings:
         return RepositoryUserRatings(self.session, PK_ID, UserToRecipe, UserRatingOut, group_id=self.group_id)
+
+    @cached_property
+    def user_scratchpad(self) -> RepositoryUserScratchPad:
+        return RepositoryUserScratchPad(self.session)
 
     @cached_property
     def api_tokens(self) -> GroupRepositoryGeneric[LongLiveTokenInDB, LongLiveToken]:

@@ -5,6 +5,8 @@
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
+import type { RecipeSummary } from "./recipe";
+
 export type WebhookType = "mealplan";
 export type AuthMethod = "Mealie" | "LDAP" | "OIDC";
 
@@ -294,6 +296,12 @@ export interface UserRatingSummary {
 export interface UserRatingUpdate {
   rating?: number | null;
   isFavorite?: boolean | null;
+}
+export interface UserScratchPadRecipe {
+  id: string;
+  recipeId: string;
+  position: number;
+  recipe: RecipeSummary;
 }
 export interface ValidateResetToken {
   token: string;
