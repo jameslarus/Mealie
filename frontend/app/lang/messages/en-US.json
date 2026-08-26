@@ -654,7 +654,8 @@
     "select-json-files": "Select files",
     "bulk-json-import-description": "Select one or more files containing recipes in JSON format.",
     "selected-json-files-count": "Number of selected files {count}.",
-    "import-json-files": "Import Files"
+    "import-json-files": "Import Files",
+    "drag-recipes-to-scratchpad": "Drag recipe here"
   },
   "recipe-finder": {
     "recipe-finder": "Recipe Finder",
