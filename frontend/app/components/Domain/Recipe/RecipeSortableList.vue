@@ -149,14 +149,6 @@ function startRecipeDrag(event: DragEvent, recipe: Recipe) {
 </script>
 
 <style scoped>
-.recipe-sortable-list__handle {
-  width: 3rem;
-}
-
-.recipe-sortable-list__drag-handle {
-  cursor: grab;
-}
-
 .recipe-sortable-list__drag-handle:active {
   cursor: grabbing;
 }

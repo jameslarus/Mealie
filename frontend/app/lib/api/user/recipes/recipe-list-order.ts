@@ -53,19 +53,3 @@ export function sortRecipeList(
     return collator.compare(left.name ?? "", right.name ?? "");
   });
 }
-
-export function mergeVisibleRecipeOrder(savedIds: string[], visibleIds: string[]): string[] {
-  const visibleSet = new Set(visibleIds);
-  const visibleQueue = [...visibleIds];
-  const merged = savedIds.map(id => visibleSet.has(id) ? visibleQueue.shift()! : id);
-  const mergedSet = new Set(merged);
-
-  for (const id of visibleQueue) {
-    if (!mergedSet.has(id)) {
-      merged.push(id);
-      mergedSet.add(id);
-    }
-  }
-
-  return merged;
-}

@@ -176,7 +176,6 @@ import { useLazyRecipes } from "~/composables/recipes";
 import type { Recipe } from "~/lib/api/types/recipe";
 import { useUserSortPreferences } from "~/composables/use-users/preferences";
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
-import { mergeVisibleRecipeOrder } from "~/lib/api/user/recipes/recipe-list-order";
 import type { ContextMenuItem } from "~/composables/use-context-presents";
 
 const REPLACE_RECIPES_EVENT = "replaceRecipes";
