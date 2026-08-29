@@ -3,7 +3,7 @@
     <thead>
       <tr>
         <th :aria-sort="ariaSort('name')">
-          <v-btn variant="text" class="px-0 font-weight-bold text-align-center" @click="sortBy('name')">
+          <v-btn variant="text" size="large" @click="sortBy('name')">
             {{ $t("general.title") }}
             <v-icon v-if="sortField === 'name'" end size="large">
               {{ sortIcon }}
@@ -11,7 +11,7 @@
           </v-btn>
         </th>
         <th :aria-sort="ariaSort('category')">
-          <v-btn variant="text" class="px-0 font-weight-bold text-align-center" @click="sortBy('category')">
+          <v-btn variant="text" size="large" @click="sortBy('category')">
             {{ $t("category.categories") }}
             <v-icon v-if="sortField === 'category'" end size="large">
               {{ sortIcon }}
@@ -19,7 +19,7 @@
           </v-btn>
         </th>
         <th :aria-sort="ariaSort('rating')">
-          <v-btn variant="text" class="px-0 font-weight-bold text-align-center" @click="sortBy('rating')">
+          <v-btn variant="text" size="large" @click="sortBy('rating:asc')">
             {{ $t("general.rating") }}
             <v-icon v-if="sortField === 'rating'" end size="large">
               {{ sortIcon }}
