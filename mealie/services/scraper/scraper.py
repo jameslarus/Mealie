@@ -4,14 +4,14 @@ from re import search as regex_search
 from uuid import uuid4
 
 from fastapi import HTTPException, status
+from slugify import slugify
 
 from mealie.core.root_logger import get_logger
 from mealie.lang.providers import Translator
 from mealie.pkgs import cache
 from mealie.repos.repository_factory import AllRepositories
 from mealie.schema.recipe import Recipe
-from mealie.schema.recipe.recipe import create_recipe_slug
-from mealie.schema.recipe.recipe import CreateRecipeByDataBulk
+from mealie.schema.recipe.recipe import CreateRecipeByDataBulk, create_recipe_slug
 from mealie.services.recipe.recipe_data_service import RecipeDataService
 from mealie.services.scraper.scraped_extras import ScrapedExtras
 
@@ -66,6 +66,7 @@ async def create_from_html(
 
     if not new_recipe:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, {"details": ParserErrors.BAD_RECIPE_DATA.value})
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, {"details": ParserErrors.BAD_RECIPE_DATA.value})
 
     new_recipe = await finalize_scraped_recipe(new_recipe, translator, on_progress=on_progress)
     return new_recipe, extras
@@ -116,7 +117,7 @@ async def finalize_scraped_recipe(
         recipe.name = f"No Recipe Name Found - {uuid4()!s}"
         recipe.slug = create_recipe_slug(recipe.name)
 
-    return new_recipe, extras
+    return recipe
 
 
 async def create_from_html_bulk(
