@@ -54,6 +54,18 @@
         :disabled="state.loading"
         :label="$t('recipe.import-original-categories')"
       />
+      <v-checkbox
+        v-model="stayInEditMode"
+        color="primary"
+        hide-details
+        :label="$t('recipe.stay-in-edit-mode')"
+      />
+      <v-checkbox
+        v-model="parseRecipe"
+        color="primary"
+        hide-details
+        :label="$t('recipe.parse-recipe-ingredients-after-import')"
+      />
     </v-card-text>
 
     <v-card-actions class="justify-center">
@@ -89,12 +101,12 @@ const reports = ref<ReportSummary[]>([]);
 
 const api = useUserApi();
 const i18n = useI18n();
-const { importKeywordsAsTags, importCategories } = useNewRecipeOptions({
-  enableImportKeywords: true,
-  enableImportCategories: true,
-  enableStayInEditMode: false,
-  enableParseRecipe: false,
-});
+const {
+  importKeywordsAsTags,
+  importCategories,
+  stayInEditMode,
+  parseRecipe,
+} = useNewRecipeOptions();
 
 function selectFiles(payload: File | File[] | unknown | null) {
   if (Array.isArray(payload)) {
