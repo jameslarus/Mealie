@@ -102,11 +102,36 @@
       />
     </v-row>
     <div v-if="recipes && ready">
-      <RecipeSortableList
-        v-if="isListView"
-        class="mt-2"
-        :recipes="recipes"
-      />
+      <div v-if="isListView">
+        <v-data-table
+          :headers="tableHeaders"
+          :items="recipes"
+        >
+          <template #item.name="{ item }">
+            <NuxtLink
+              class="recipe-sortable-list__link"
+              :to="`/g/${groupSlug}/r/${item.slug}`"
+              draggable="true"
+              @dragstart="startRecipeDrag($event, item)"
+            >
+              {{ item.name }}
+            </NuxtLink>
+          </template>
+
+          <template #item.category="{ item }">
+            {{ recipeCategoryLabel(item) || "—" }}
+          </template>
+
+          <template #item.rating="{ item }">
+            <v-rating
+              :model-value="item.rating"
+              density="compact"
+              size="small"
+            />
+          </template>
+        </v-data-table>
+      </div>
+
       <div v-else class="mt-2">
         <v-row v-if="!useMobileCards">
           <v-col
@@ -170,13 +195,13 @@
 import { useThrottleFn } from "@vueuse/core";
 import RecipeCard from "./RecipeCard.vue";
 import RecipeCardMobile from "./RecipeCardMobile.vue";
-import RecipeSortableList from "./RecipeSortableList.vue";
 import { useLoggedInState } from "~/composables/use-logged-in-state";
 import { useLazyRecipes } from "~/composables/recipes";
 import type { Recipe } from "~/lib/api/types/recipe";
 import { useUserSortPreferences } from "~/composables/use-users/preferences";
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
 import type { ContextMenuItem } from "~/composables/use-context-presents";
+import { setRecipeDragData } from "~/lib/recipe-drag";
 
 const REPLACE_RECIPES_EVENT = "replaceRecipes";
 const APPEND_RECIPES_EVENT = "appendRecipes";
@@ -295,6 +320,9 @@ async function fetchRecipes(pageCount = 1, fetchAll = false) {
   const localQuery = { ...props.query };
   if (orderBy === "random") {
     localQuery._searchSeed = randomSeed.value;
+  }
+  if (isListView.value) {
+    fetchAll = true;
   }
   return await fetchMore(
     fetchAll ? 1 : page.value,
@@ -492,10 +520,42 @@ function selectCardView(denseCards: boolean) {
 async function selectListView() {
   preferences.value.displayAsList = true;
 }
+
+const tableHeaders = [
+  { title: $t("general.title"), key: "name" },
+  { title: $t("category.categories"), key: "category", value: item => recipeCategoryLabel(item) },
+  { title: $t("general.rating"), key: "rating" },
+];
+
+const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: true });
+
+function recipeCategoryLabel(recipe: Recipe): string {
+  return (recipe.recipeCategory ?? [])
+    .map(category => category.name?.trim() ?? "")
+    .filter(Boolean)
+    .sort(collator.compare)
+    .join(", ");
+}
+
+function startRecipeDrag(event: DragEvent, recipe: Recipe) {
+  if (recipe.id) {
+    setRecipeDragData(event, { id: recipe.id });
+  }
+}
 </script>
 
 <style>
 .transparent {
   opacity: 1;
+}
+
+.recipe-sortable-list__link {
+  color: inherit;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.recipe-sortable-list__link:hover {
+  text-decoration: underline;
 }
 </style>
