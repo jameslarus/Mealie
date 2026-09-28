@@ -127,9 +127,10 @@
 
           <template #item.rating="{ item }">
             <v-rating
-              :model-value="item.rating"
+              :model-value="item.rating ? item.rating : 0"
               density="compact"
               size="small"
+              @update:model-value="updateRating($event, item)"
             />
           </template>
         </v-data-table>
@@ -205,6 +206,7 @@ import { useUserSortPreferences, useRecipeTablePreferences } from "~/composables
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
 import type { ContextMenuItem } from "~/composables/use-context-presents";
 import { setRecipeDragData } from "~/lib/recipe-drag";
+import { useUserSelfRatings } from "~/composables/use-users";
 
 const REPLACE_RECIPES_EVENT = "replaceRecipes";
 const APPEND_RECIPES_EVENT = "appendRecipes";
@@ -544,6 +546,16 @@ function recipeCategoryLabel(recipe: Recipe): string {
 function startRecipeDrag(event: DragEvent, recipe: Recipe) {
   if (recipe.id) {
     setRecipeDragData(event, { id: recipe.id });
+  }
+}
+
+const { _, setRating } = useUserSelfRatings();
+
+async function updateRating(num: string | number, recipe: Recipe) {
+  console.log("Rating", num);
+  if (recipe.id) {
+    await setRating(recipe.slug ? recipe.slug : "", Number(num), null);
+    recipe.rating = Number(num);
   }
 }
 </script>
