@@ -816,7 +816,8 @@
     "maintenance": "Maintenance",
     "parser": "Parser",
     "developer": "Developer",
-    "cookbook": "Cookbook"
+    "cookbook": "Cookbook",
+    "scratchpad": "Scratch Pad"
   },
   "tag": {
     "tags": "Tags",

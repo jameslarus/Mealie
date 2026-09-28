@@ -104,6 +104,9 @@
     <div v-if="recipes && ready">
       <div v-if="isListView">
         <v-data-table
+          v-model:page-number="tablePreferences.pageNumber"
+          v-model:items-per-page="tablePreferences.itemsPerPage"
+          v-model:sort-by="tablePreferences.sortBy"
           :headers="tableHeaders"
           :items="recipes"
         >
@@ -198,7 +201,7 @@ import RecipeCardMobile from "./RecipeCardMobile.vue";
 import { useLoggedInState } from "~/composables/use-logged-in-state";
 import { useLazyRecipes } from "~/composables/recipes";
 import type { Recipe } from "~/lib/api/types/recipe";
-import { useUserSortPreferences } from "~/composables/use-users/preferences";
+import { useUserSortPreferences, useRecipeTablePreferences } from "~/composables/use-users/preferences";
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
 import type { ContextMenuItem } from "~/composables/use-context-presents";
 import { setRecipeDragData } from "~/lib/recipe-drag";
@@ -232,6 +235,7 @@ const emit = defineEmits<{
 
 const display = useDisplay();
 const preferences = useUserSortPreferences();
+const tablePreferences = useRecipeTablePreferences();
 
 const EVENTS = {
   az: "az",
