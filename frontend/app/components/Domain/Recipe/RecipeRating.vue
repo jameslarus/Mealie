@@ -13,6 +13,13 @@
       :clearable="!!displayRating"
       @update:model-value="updateRating(+$event)"
     />
+    <v-number-input
+      :model-value="displayRating"
+      :precision="1"
+      :control-variant="'hidden'"
+      label="Rating"
+      @update:model-value="updateRating(+$event)"
+    />
   </div>
 </template>
 
@@ -75,7 +82,9 @@ async function updateRating(val?: number) {
   }
 
   // user ratings are always whole stars
-  let rating = Math.round(val ?? 0);
+  // let rating = Math.round(val ?? 0);
+  // Allow ratings to be tenths.
+  let rating = Math.trunc((val ?? 0) * 10.0) / 10.0;
   if (rating === localUserRating.value) {
     rating = 0;
   }
