@@ -107,6 +107,8 @@
           v-model:page-number="tablePreferences.pageNumber"
           v-model:items-per-page="tablePreferences.itemsPerPage"
           v-model:sort-by="tablePreferences.sortBy"
+          class="elevation-0"
+          :striped="'even'"
           :headers="tableHeaders"
           :items="recipes"
         >
