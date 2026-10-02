@@ -133,6 +133,10 @@
               @update:model-value="updateRating($event, item)"
             />
           </template>
+
+          <template #item.tags="{ item }">
+            {{ recipeTagsLabel(item) || "—" }}
+          </template>
         </v-data-table>
       </div>
 
@@ -531,6 +535,7 @@ const tableHeaders = [
   { title: $t("general.title"), key: "name" },
   { title: $t("category.categories"), key: "category", value: item => recipeCategoryLabel(item) },
   { title: $t("general.rating"), key: "rating" },
+  { title: $t("tag.tags"), key: "tags", value: item => recipeTagsLabel(item) },
 ];
 
 const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: true });
@@ -538,6 +543,14 @@ const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: tr
 function recipeCategoryLabel(recipe: Recipe): string {
   return (recipe.recipeCategory ?? [])
     .map(category => category.name?.trim() ?? "")
+    .filter(Boolean)
+    .sort(collator.compare)
+    .join(", ");
+}
+
+function recipeTagsLabel(recipe: Recipe): string {
+  return (recipe.tags ?? [])
+    .map(tag => tag.name?.trim() ?? "")
     .filter(Boolean)
     .sort(collator.compare)
     .join(", ");
