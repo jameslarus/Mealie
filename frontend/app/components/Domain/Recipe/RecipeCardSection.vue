@@ -112,6 +112,15 @@
           :headers="tableHeaders"
           :items="recipes"
         >
+          <template #item.favorite="{ item }">
+            <RecipeFavoriteBadge
+              v-if="isOwnGroup"
+              :recipe-id="item.id ? item.id : ''"
+              show-always
+              color="white"
+            />
+          </template>
+
           <template #item.name="{ item }">
             <NuxtLink
               class="recipe-sortable-list__link"
@@ -206,6 +215,7 @@
 import { useThrottleFn } from "@vueuse/core";
 import RecipeCard from "./RecipeCard.vue";
 import RecipeCardMobile from "./RecipeCardMobile.vue";
+import RecipeFavoriteBadge from "./RecipeFavoriteBadge.vue";
 import { useLoggedInState } from "~/composables/use-logged-in-state";
 import { useLazyRecipes } from "~/composables/recipes";
 import type { Recipe } from "~/lib/api/types/recipe";
@@ -535,6 +545,7 @@ async function selectListView() {
 }
 
 const tableHeaders = [
+  { title: $t("general.favorites"), key: "favorite", value: item => recipeIsFavorite(item) },
   { title: $t("general.title"), key: "name" },
   { title: $t("category.categories"), key: "category", value: item => recipeCategoryLabel(item) },
   { title: $t("general.rating"), key: "rating" },
@@ -557,6 +568,13 @@ function recipeTagsLabel(recipe: Recipe): string {
     .filter(Boolean)
     .sort(collator.compare)
     .join(", ");
+}
+
+const { userRatings, refreshUserRatings } = useUserSelfRatings();
+
+function recipeIsFavorite(recipe: Recipe): boolean {
+  const rating = userRatings.value.find(r => r.recipeId === recipe.id);
+  return rating?.isFavorite || false;
 }
 
 function startRecipeDrag(event: DragEvent, recipe: Recipe) {
