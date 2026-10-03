@@ -141,7 +141,6 @@
               :model-value="item.rating ? item.rating : 0"
               density="compact"
               size="small"
-              :readonly="true"
               @update:model-value="updateRating($event, item)"
             />
           </template>
