@@ -170,6 +170,7 @@ export interface IngredientFood {
   substitutions?: IngredientFoodSubstitution[];
   householdsWithIngredientFood?: string[];
   label?: MultiPurposeLabelSummary | null;
+  recipeCount?: number;
   createdAt?: string | null;
   updatedAt?: string | null;
 }
@@ -280,6 +281,9 @@ export interface Recipe {
   prepTime?: string | null;
   cookTime?: string | null;
   performTime?: string | null;
+  totalTimeSeconds?: number | null;
+  prepTimeSeconds?: number | null;
+  performTimeSeconds?: number | null;
   description?: string | null;
   recipeCategory?: RecipeCategory[] | null;
   tags?: RecipeTag[] | null;
@@ -377,6 +381,9 @@ export interface RecipeSummary {
   prepTime?: string | null;
   cookTime?: string | null;
   performTime?: string | null;
+  totalTimeSeconds?: number | null;
+  prepTimeSeconds?: number | null;
+  performTimeSeconds?: number | null;
   description?: string | null;
   recipeCategory?: RecipeCategory[] | null;
   tags?: RecipeTag[] | null;
@@ -575,6 +582,7 @@ export interface RecipeToolOut {
   id: string;
   groupId: string;
   slug: string;
+  recipeCount?: number;
 }
 export interface RecipeToolResponse {
   name: string;
@@ -582,6 +590,7 @@ export interface RecipeToolResponse {
   id: string;
   groupId: string;
   slug: string;
+  recipeCount?: number;
   recipes?: RecipeSummary[];
 }
 export interface RecipeToolSave {
