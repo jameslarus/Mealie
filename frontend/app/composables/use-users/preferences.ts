@@ -35,6 +35,7 @@ export interface UserRecipePreferences {
   sortIcon: string;
   useMobileCards: boolean;
   displayAsList: boolean;
+  displayAsGroupedList: boolean;
 }
 
 export interface UserShoppingListPreferences {
@@ -127,6 +128,7 @@ export function useUserSortPreferences(): Ref<UserRecipePreferences> {
       sortIcon: $globals.icons.sortAlphabeticalAscending,
       useMobileCards: false,
       displayAsList: false,
+      displayAsGroupedList: false,
     },
     { mergeDefaults: true },
   );

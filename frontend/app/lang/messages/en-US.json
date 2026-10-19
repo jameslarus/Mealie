@@ -179,6 +179,7 @@
     "value": "Value",
     "cant-create-permission": "Can't create. Please contact your administrator to get permission.",
     "list-view": "List",
+    "grouped-list-view": "Grouped List",
     "card-view": "Cards",
     "large-card-view": "Large Cards"
   },

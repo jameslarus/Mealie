@@ -99,10 +99,11 @@
         @select-dense-card-view="selectCardView(true)"
         @select-large-card-view="selectCardView(false)"
         @select-list-view="selectListView()"
+        @select-grouped-list-view="selectGroupedListView()"
       />
     </v-row>
     <div v-if="recipes && ready">
-      <div v-if="isListView">
+      <div v-if="isListView || isGroupedListView">
         <v-data-table
           v-model:page-number="tablePreferences.pageNumber"
           v-model:items-per-page="tablePreferences.itemsPerPage"
@@ -110,8 +111,30 @@
           class="elevation-0"
           :striped="'even'"
           :headers="tableHeaders"
+          :group-by="isGroupedListView ? groupBy : []"
           :items="recipes"
         >
+          <template #group-header="{ item, columns, toggleGroup, isGroupOpen }">
+            <tr class="cursor-pointer" @click="toggleGroup(item)">
+              <td :colspan="columns.length">
+                <div class="d-flex align-center">
+                  <v-btn
+                    :icon="isGroupOpen(item) ? '$expand' : '$next'"
+                    color="medium-emphasis"
+                    density="comfortable"
+                    size="small"
+                    variant="outlined"
+                  />
+                  <span class="ms-4">{{ item.value }} ({{ item.items.length }})</span>
+                </div>
+              </td>
+            </tr>
+          </template>
+
+          <template #header.data-table-group>
+            Category
+          </template>
+
           <template #item.favorite="{ item }">
             <RecipeFavoriteBadge
               v-if="isOwnGroup"
@@ -274,12 +297,20 @@ const useMobileCards = computed(() => {
 const isListView = computed(() => {
   return preferences.value.displayAsList;
 });
+const isGroupedListView = computed(() => {
+  return preferences.value.displayAsGroupedList;
+});
 const isCardView = computed(() => {
-  return !isListView.value;
+  return !isListView.value && !isGroupedListView.value;
 });
 
 const viewMenuItems = computed(() => {
   const items: ContextMenuItem[] = [];
+  items.push({
+    title: i18n.t("general.grouped-list-view"),
+    icon: $globals.icons.formatListGroup,
+    event: "select-grouped-list-view",
+  });
   items.push({
     title: i18n.t("general.list-view"),
     icon: $globals.icons.formatListCheck,
@@ -343,7 +374,7 @@ async function fetchRecipes(pageCount = 1, fetchAll = false) {
   if (orderBy === "random") {
     localQuery._searchSeed = randomSeed.value;
   }
-  if (isListView.value) {
+  if (isListView.value || isGroupedListView.value) {
     fetchAll = true;
   }
   return await fetchMore(
@@ -407,13 +438,20 @@ async function initRecipes() {
 
   // we double-up the first call to avoid a bug with large screens that render
   // the entire first page without scrolling, preventing additional loading
-  const newRecipes = await fetchRecipes(page.value + 1);
+  let newRecipes = await fetchRecipes(page.value + 1);
   if (newRecipes.length < perPage) {
     hasMore.value = false;
   }
 
   // since we doubled the first call, we also need to advance the page
   page.value = page.value + 1;
+
+  // Add a new field (categoryLabel) holding the category name(s) for a recipe,
+  // so we can group by it in the table view.
+  newRecipes = newRecipes.map(recipe => ({
+    ...recipe,
+    categoryLabel: recipeCategoryLabel(recipe) || "Uncategorized",
+  }));
 
   emit(REPLACE_RECIPES_EVENT, newRecipes);
 }
@@ -536,29 +574,57 @@ async function navigateRandom() {
 
 function selectCardView(denseCards: boolean) {
   preferences.value.displayAsList = false;
+  preferences.value.displayAsGroupedList = false;
   preferences.value.useMobileCards = denseCards;
 }
 
 async function selectListView() {
   preferences.value.displayAsList = true;
+  preferences.value.displayAsGroupedList = false;
+}
+
+async function selectGroupedListView() {
+  preferences.value.displayAsGroupedList = true;
+  preferences.value.displayAsList = false;
 }
 
 const tableHeaders = [
+  // { title: $t("category.categories"), key: "category", value: item => recipeCategoryLabel(item) },
   { title: $t("general.favorites"), key: "favorite", value: item => recipeIsFavorite(item) },
   { title: $t("general.title"), key: "name" },
-  { title: $t("category.categories"), key: "category", value: item => recipeCategoryLabel(item) },
   { title: $t("general.rating"), key: "rating" },
   { title: $t("tag.tags"), key: "tags", value: item => recipeTagsLabel(item) },
 ];
 
+const groupBy = [{ key: "categoryLabel", order: "asc" }];
+
 const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: true });
 
 function recipeCategoryLabel(recipe: Recipe): string {
-  return (recipe.recipeCategory ?? [])
-    .map(category => category.name?.trim() ?? "")
-    .filter(Boolean)
-    .sort(collator.compare)
-    .join(", ");
+  const categories = recipe.recipeCategory;
+  if (categories == null || categories.length === 0) {
+    return "";
+  }
+  else if (categories.length === 1) {
+    return categories[0]?.name?.trim() ?? "";
+  }
+  else if (categories.length === 2) {
+    const firstCategory = categories[0]?.name?.trim() ?? "";
+    const secondCategory = categories[1]?.name?.trim() ?? "";
+    if (firstCategory.toLowerCase() === "dessert" || firstCategory.toLowerCase() === "savory") {
+      return firstCategory + ", " + secondCategory;
+    }
+    else {
+      return secondCategory + ", " + firstCategory;
+    }
+  }
+  else {
+    const categoryNames = categories
+      .map(category => category.name?.trim() ?? "")
+      .filter(Boolean)
+      .sort(collator.compare);
+    return categoryNames.join(", ");
+  }
 }
 
 function recipeTagsLabel(recipe: Recipe): string {
