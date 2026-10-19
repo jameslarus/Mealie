@@ -98,8 +98,8 @@
         :items="viewMenuItems"
         @select-dense-card-view="selectCardView(true)"
         @select-large-card-view="selectCardView(false)"
-        @select-list-view="selectListView()"
-        @select-grouped-list-view="selectGroupedListView()"
+        @select-list-view="selectListView(false)"
+        @select-grouped-list-view="selectListView(true)"
       />
     </v-row>
     <div v-if="recipes && ready">
@@ -578,18 +578,12 @@ function selectCardView(denseCards: boolean) {
   preferences.value.useMobileCards = denseCards;
 }
 
-async function selectListView() {
-  preferences.value.displayAsList = true;
-  preferences.value.displayAsGroupedList = false;
-}
-
-async function selectGroupedListView() {
-  preferences.value.displayAsGroupedList = true;
-  preferences.value.displayAsList = false;
+async function selectListView(grouped: boolean) {
+  preferences.value.displayAsList = !grouped;
+  preferences.value.displayAsGroupedList = grouped;
 }
 
 const tableHeaders = [
-  // { title: $t("category.categories"), key: "category", value: item => recipeCategoryLabel(item) },
   { title: $t("general.favorites"), key: "favorite", value: item => recipeIsFavorite(item) },
   { title: $t("general.title"), key: "name" },
   { title: $t("general.rating"), key: "rating" },
