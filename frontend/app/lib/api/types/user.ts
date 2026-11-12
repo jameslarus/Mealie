@@ -5,6 +5,8 @@
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
+import type { RecipeOut } from "./recipe";
+
 export type WebhookType = "mealplan";
 export type AuthMethod = "Mealie" | "LDAP" | "OIDC" | "ReverseProxy";
 
@@ -295,6 +297,12 @@ export interface UserRegistrationCreate {
   private?: boolean;
   seedData?: boolean;
   locale?: string;
+}
+export interface UserScratchPadRecipe {
+  id: string;
+  recipeId: string;
+  position: number;
+  recipe: RecipeOut;
 }
 export interface ValidateResetToken {
   token: string;

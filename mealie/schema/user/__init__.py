@@ -33,6 +33,8 @@ from .user import (
     UserRatingSave,
     UserRatingSummary,
     UserRatingUpdate,
+    UserScratchPadRecipeOrder,
+    UserScratchPadRecipeOut,
     UserSummary,
 )
 from .user_passwords import (
@@ -76,6 +78,8 @@ __all__ = [
     "UserRatingSummary",
     "UserRatingUpdate",
     "UserRatings",
+    "UserScratchPadRecipeOrder",
+    "UserScratchPadRecipeOut",
     "UserSummary",
     "ForgotPassword",
     "PasswordResetToken",

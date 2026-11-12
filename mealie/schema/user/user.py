@@ -21,6 +21,7 @@ from mealie.schema.response.pagination import PaginationBase
 
 from ...db.models.group import Group
 from ..recipe import CategoryOut
+from ..recipe.recipe import RecipeDraft
 
 DEFAULT_INTEGRATION_ID = "generic"
 settings = get_app_settings()
@@ -109,6 +110,18 @@ class UserRatingOut(UserRatingSummary):
 
 class UserRatings[DataT: BaseModel](BaseModel):
     ratings: list[DataT]
+
+
+class UserScratchPadRecipeOut(MealieModel):
+    id: UUID4
+    recipe_id: UUID4
+    position: int
+    recipe: RecipeDraft
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserScratchPadRecipeOrder(MealieModel):
+    recipe_ids: list[UUID4]
 
 
 class UserBase(MealieModel):

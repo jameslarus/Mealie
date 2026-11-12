@@ -73,6 +73,8 @@
       </v-list>
     </template>
 
+    <slot name="scratchpad" />
+
     <!-- Secondary Links -->
     <template v-if="secondaryLinks.length > 0">
       <v-divider class="mt-2" />

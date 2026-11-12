@@ -12,7 +12,9 @@
         :elevation="isHovering ? 12 : 2"
         :to="recipeRoute"
         :min-height="imageHeight + 75"
+        :draggable="isOwnGroup"
         @click.self="$emit('click')"
+        @dragstart="startDrag"
       >
         <RecipeCardImage
           small
@@ -107,6 +109,7 @@ import RecipeContextMenu from "./RecipeContextMenu/RecipeContextMenu.vue";
 import RecipeCardImage from "./RecipeCardImage.vue";
 import RecipeCardRating from "./RecipeCardRating.vue";
 import { useLoggedInState } from "~/composables/use-logged-in-state";
+import { setRecipeDragData } from "~/lib/recipe/recipe-drag";
 import type { TagOut } from "~/lib/api/types/recipe";
 
 interface Props {
@@ -145,6 +148,12 @@ const recipeRoute = computed<string>(() => {
   return showRecipeContent.value ? `/g/${groupSlug.value}/r/${props.slug}` : "";
 });
 const cursor = computed(() => showRecipeContent.value ? "pointer" : "auto");
+
+function startDrag(event: DragEvent) {
+  if (isOwnGroup.value && props.recipeId) {
+    setRecipeDragData(event, { id: props.recipeId });
+  }
+}
 </script>
 
 <style>
