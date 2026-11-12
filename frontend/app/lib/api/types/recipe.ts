@@ -427,6 +427,15 @@ export interface RecipeCommentUpdate {
 export interface RecipeCreate {
   name: string;
 }
+export interface RecipeDataBulkCreate {
+  imports: RecipeDataCreate[];
+}
+export interface RecipeDataCreate {
+  file_name: string;
+  data: string; // base64 encoded string
+  categories?: CategoryDraft[] | null;
+  tags?: TagDraft[] | null;
+}
 export interface RecipeDuplicate {
   name?: string | null;
 }

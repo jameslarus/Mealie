@@ -1,10 +1,11 @@
 import asyncio
+from base64 import b64decode
 
 from pydantic import UUID4
 
 from mealie.lang.providers import Translator
 from mealie.repos.repository_factory import AllRepositories
-from mealie.schema.recipe.recipe import RecipeDraft, RecipeUrlBulkCreate
+from mealie.schema.recipe.recipe import RecipeDataBulkCreate, RecipeDraft, RecipeUrlBulkCreate
 from mealie.schema.reports.reports import (
     ReportCategory,
     ReportCreate,
@@ -15,7 +16,9 @@ from mealie.schema.reports.reports import (
 from mealie.schema.user.user import GroupOut
 from mealie.services._base_service import BaseService
 from mealie.services.recipe.recipe_service import RecipeService
-from mealie.services.scraper.scraper import create_from_html
+from mealie.services.scraper.scraped_extras import ScrapedExtras, ScraperContext
+from mealie.services.scraper.scraper import create_from_html, create_from_html_bulk
+from mealie.services.scraper.scraper_strategies import RecipeScraperPackage
 
 
 class RecipeBulkScraperService(BaseService):
@@ -118,6 +121,65 @@ class RecipeBulkScraperService(BaseService):
                     report_id=self.report.id,
                     success=True,
                     message=f"Successfully imported recipe {recipe.name}",
+                    exception="",
+                )
+            )
+
+        self._save_all_entries()
+
+    async def scrape_data_bulk(self, bulk: RecipeDataBulkCreate) -> None:
+        sem = asyncio.Semaphore(3)
+
+        async def _do(file_name: str, data: str) -> tuple[RecipeDraft, ScrapedExtras | None] | None:
+            async with sem:
+                try:
+                    if file_name.lower().endswith(".json"):
+                        decoded_data = b64decode(data).decode("utf-8")
+                        stripped_data = decoded_data.lstrip()
+                        html = (
+                            RecipeScraperPackage.ld_json_to_html(stripped_data)
+                            if stripped_data.startswith("{")
+                            else decoded_data
+                        )
+                        recipe, extras = await create_from_html_bulk("", self.repos, self.translator, html, bulk)
+                        return recipe, extras
+                    else:
+                        return None
+                except Exception as e:
+                    self.service.logger.error(f"Failed to parse recipe from bulk import file {file_name}")
+                    self.service.logger.exception(e)
+                    self._add_error_entry(f"Failed to import {file_name}", str(e))
+                    return None
+
+        if self.report is None:
+            self.get_report_id("Bulk JSON Import")
+
+        tasks = [_do(item.file_name, item.data) for item in bulk.inputs]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for item, result in zip(bulk.inputs, results, strict=True):
+            if not result or isinstance(result, BaseException):
+                continue
+
+            recipe, extras = result
+            ctx = ScraperContext(self.repos)
+            if item.include_tags and extras:
+                recipe.tags = extras.use_tags(ctx)
+            if item.include_categories and extras:
+                recipe.recipe_category = extras.use_categories(ctx)
+
+            try:
+                self.service.create_one(recipe)
+            except Exception as e:
+                self.service.logger.error(f"Failed to save recipe from bulk import file {item.file_name}")
+                self.service.logger.exception(e)
+                self._add_error_entry(f"Failed to import {item.file_name}", str(e))
+                continue
+
+            self.report_entries.append(
+                ReportEntryCreate(
+                    report_id=self.report.id,
+                    success=True,
+                    message=f"Successfully imported {item.file_name} as {recipe.name}",
                     exception="",
                 )
             )

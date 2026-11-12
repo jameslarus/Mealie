@@ -1,5 +1,6 @@
 import asyncio
 import shutil
+from base64 import b64decode
 import tempfile
 from logging import Logger
 from pathlib import Path
@@ -7,7 +8,7 @@ from pathlib import Path
 from pydantic import UUID4
 
 from mealie.pkgs import img, safehttp
-from mealie.schema.recipe.recipe import RecipeOut
+from mealie.schema.recipe.recipe import RecipeDataBulkCreate, RecipeOut
 from mealie.schema.recipe.recipe_image_types import RecipeImageTypes
 from mealie.services._base_service import BaseService
 
@@ -194,3 +195,27 @@ class RecipeDataService(BaseService):
         # The extension only labels the bytes on their way into the minifier, which sniffs the
         # real format and converts everything to webp regardless.
         return self.write_image(content, extension)
+
+    async def scrape_image_bulk(self, image_filename: str, bulk: RecipeDataBulkCreate) -> None:
+        self.logger.info(f"Image file name: {image_filename}")
+
+        if not image_filename:
+            raise ValueError("null image file name")
+
+        ext = image_filename.split(".")[-1]
+
+        if "." + ext not in img.IMAGE_EXTENSIONS:
+            ext = "jpg"  # Guess the extension
+
+        file_name = f"{self.recipe_id!s}.{ext}"
+        file_path = RecipeOut.directory_from_id(self.recipe_id).joinpath("images", file_name)
+
+        self.logger.debug(f"File Name Suffix {file_path.suffix}")
+        self.logger.debug(f"File Path {file_path}")
+        for b_in in bulk.inputs:
+            if b_in.file_name == image_filename:
+                self.logger.debug(f"Found image in bulk import files: {b_in.file_name}")
+                self.write_image(b64decode(b_in.data), file_path.suffix)
+                file_path.unlink(missing_ok=True)
+                return
+        self.logger.debug(f"Cannot find image in bulk import files: {image_filename}.")

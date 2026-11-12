@@ -59,6 +59,17 @@ def create_recipe_slug(name: str, max_length: int = 250) -> str:
     return generated_slug
 
 
+class RecipeDataCreate(BaseModel):
+    file_name: str
+    data: str  # base64 encoded string
+    include_categories: bool
+    include_tags: bool
+
+
+class RecipeDataBulkCreate(BaseModel):
+    imports: list[RecipeDataCreate]
+
+
 class RecipeUrlCreate(BaseModel):
     url: str
     categories: list[CategoryDraft] | None = None
