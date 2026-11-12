@@ -138,6 +138,7 @@ export function useUserSortPreferences(): Ref<UserRecipePreferences> {
       sortIcon: $globals.icons.sortAlphabeticalAscending,
       useMobileCards: false,
       displayAsList: false,
+      displayAsGroupedList: true,
     },
     { mergeDefaults: true },
   );
