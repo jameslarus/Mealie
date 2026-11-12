@@ -735,7 +735,13 @@
     "cover-image": "Cover image",
     "include-linked-recipes": "Include Linked Recipes",
     "include-linked-recipe-ingredients": "Include Linked Recipe Ingredients",
-    "toggle-recipe": "Toggle Recipe"
+    "toggle-recipe": "Toggle Recipe",
+    "bulk-json-import": "Bulk JSON Import",
+    "select-json-files": "Select files",
+    "bulk-json-import-description": "Select one or more files containing recipes in JSON format.",
+    "selected-json-files-count": "Number of selected files {count}.",
+    "import-json-files": "Import Files",
+    "drag-recipes-to-scratchpad": "Drag recipe here"
   },
   "recipe-finder": {
     "recipe-finder": "Recipe Finder",
