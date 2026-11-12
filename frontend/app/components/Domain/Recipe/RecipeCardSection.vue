@@ -479,13 +479,20 @@ async function initRecipes() {
 
   // we double-up the first call to avoid a bug with large screens that render
   // the entire first page without scrolling, preventing additional loading
-  const newRecipes = await fetchRecipes(page.value + 1);
+  let newRecipes = await fetchRecipes(page.value + 1);
   if (newRecipes.length < perPage) {
     hasMore.value = false;
   }
 
   // since we doubled the first call, we also need to advance the page
   page.value = page.value + 1;
+
+  // Add a new field (categoryLabel) holding the category name(s) for a recipe,
+  // so we can group by it in the table view.
+  newRecipes = newRecipes.map(recipe => ({
+    ...recipe,
+    categoryLabel: recipeCategoryLabel(recipe) || "Uncategorized",
+  }));
 
   emit(REPLACE_RECIPES_EVENT, newRecipes);
 }
