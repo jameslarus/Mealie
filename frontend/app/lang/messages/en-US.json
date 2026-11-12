@@ -742,7 +742,9 @@
     "bulk-json-import-description": "Select one or more files containing recipes in JSON format.",
     "selected-json-files-count": "Number of selected files {count}.",
     "import-json-files": "Import Files",
-    "drag-recipes-to-scratchpad": "Drag recipe here"
+    "drag-recipes-to-scratchpad": "Drag recipe to Scratchpad",
+    "remove-from-scratchpad": "Remove from Scratchpad",
+    "scratchpad-update-failed": "Scratchpad update failed"
   },
   "recipe-finder": {
     "recipe-finder": "Recipe Finder",
@@ -910,7 +912,8 @@
     "maintenance": "Maintenance",
     "parser": "Parser",
     "developer": "Developer",
-    "cookbook": "Cookbook"
+    "cookbook": "Cookbook",
+    "scratchpad": "Scratchpad"
   },
   "tag": {
     "tags": "Tags",
