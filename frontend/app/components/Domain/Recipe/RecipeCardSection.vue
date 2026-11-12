@@ -256,6 +256,7 @@ import type { RecipeSummary, TagOut } from "~/lib/api/types/recipe";
 import { useUserSortPreferences } from "~/composables/use-users/preferences";
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
 import type { ContextMenuItem } from "~/composables/use-context-presents";
+import { setRecipeDragData } from "~/lib/recipe-drag";
 
 const REPLACE_RECIPES_EVENT = "replaceRecipes";
 const APPEND_RECIPES_EVENT = "appendRecipes";
@@ -410,6 +411,9 @@ async function fetchRecipes(pageCount = 1, fetchAll = false) {
   const localQuery = { ...props.query };
   if (orderBy === "random") {
     localQuery._searchSeed = randomSeed.value;
+  }
+  if (isListView.value) {
+    fetchAll = true;
   }
   return await fetchMore(
     fetchAll ? 1 : page.value,
@@ -696,5 +700,15 @@ async function updateRating(num: string | number, recipe: RecipeDraft) {
 <style>
 .transparent {
   opacity: 1;
+}
+
+.recipe-sortable-list__link {
+  color: inherit;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.recipe-sortable-list__link:hover {
+  text-decoration: underline;
 }
 </style>
