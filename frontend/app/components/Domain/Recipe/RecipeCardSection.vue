@@ -246,18 +246,17 @@
 
 <script setup lang="ts">
 import { useThrottleFn } from "@vueuse/core";
-import type { RecipeOut, RecipeDraft, RecipeSummary } from "~/lib/api/types/recipe";
+import type { RecipeOut, RecipeDraft, RecipeSummary, TagOut } from "~/lib/api/types/recipe";
 import RecipeCard from "./RecipeCard.vue";
 import RecipeCardMobile from "./RecipeCardMobile.vue";
 import RecipeFavoriteBadge from "./RecipeFavoriteBadge.vue";
 import type { UrlPrefixParam } from "./RecipeChips.vue";
 import { useLoggedInState } from "~/composables/use-logged-in-state";
 import { useLazyRecipes } from "~/composables/recipes";
-import type { RecipeSummary, TagOut } from "~/lib/api/types/recipe";
 import { useUserSortPreferences, useRecipeTablePreferences } from "~/composables/use-users/preferences";
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
 import type { ContextMenuItem } from "~/composables/use-context-presents";
-import { setRecipeDragData } from "~/lib/recipe-drag";
+import { setRecipeDragData } from "~/lib/recipe/recipe-drag";
 import { useUserSelfRatings } from "~/composables/use-users";
 
 const REPLACE_RECIPES_EVENT = "replaceRecipes";
@@ -648,7 +647,7 @@ const groupBy = [{ key: "categoryLabel", order: "asc" }];
 
 const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: true });
 
-function recipeCategoryLabel(recipe: RecipeDraft): string {
+function recipeCategoryLabel(recipe: RecipeOut): string {
   const categories = recipe.recipeCategory;
   if (categories == null || categories.length === 0) {
     return "";
@@ -675,7 +674,7 @@ function recipeCategoryLabel(recipe: RecipeDraft): string {
   }
 }
 
-function recipeTagsLabel(recipe: RecipeDraft): string {
+function recipeTagsLabel(recipe: RecipeOut): string {
   return (recipe.tags ?? [])
     .map(tag => tag.name?.trim() ?? "")
     .filter(Boolean)
@@ -685,12 +684,12 @@ function recipeTagsLabel(recipe: RecipeDraft): string {
 
 const { userRatings, refreshUserRatings } = useUserSelfRatings();
 
-function recipeIsFavorite(recipe: RecipeDraft): boolean {
+function recipeIsFavorite(recipe: RecipeOut): boolean {
   const rating = userRatings.value.find(r => r.recipeId === recipe.id);
   return rating?.isFavorite || false;
 }
 
-function startRecipeDrag(event: DragEvent, recipe: RecipeDraft) {
+function startRecipeDrag(event: DragEvent, recipe: RecipeOut) {
   if (recipe.id) {
     setRecipeDragData(event, { id: recipe.id });
   }
