@@ -257,6 +257,7 @@ import { useUserSortPreferences, useRecipeTablePreferences } from "~/composables
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
 import type { ContextMenuItem } from "~/composables/use-context-presents";
 import { setRecipeDragData } from "~/lib/recipe-drag";
+import { useUserSelfRatings } from "~/composables/use-users";
 
 const REPLACE_RECIPES_EVENT = "replaceRecipes";
 const APPEND_RECIPES_EVENT = "appendRecipes";
