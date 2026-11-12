@@ -253,7 +253,7 @@ import type { UrlPrefixParam } from "./RecipeChips.vue";
 import { useLoggedInState } from "~/composables/use-logged-in-state";
 import { useLazyRecipes } from "~/composables/recipes";
 import type { RecipeSummary, TagOut } from "~/lib/api/types/recipe";
-import { useUserSortPreferences } from "~/composables/use-users/preferences";
+import { useUserSortPreferences, useRecipeTablePreferences } from "~/composables/use-users/preferences";
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
 import type { ContextMenuItem } from "~/composables/use-context-presents";
 import { setRecipeDragData } from "~/lib/recipe-drag";
@@ -290,6 +290,7 @@ const emit = defineEmits<{
 
 const display = useDisplay();
 const preferences = useUserSortPreferences();
+const tablePreferences = useRecipeTablePreferences();
 
 const EVENTS = {
   az: "az",

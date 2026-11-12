@@ -261,6 +261,34 @@ export function useRecipeCreatePreferences(): Ref<UserRecipeCreatePreferences> {
   return fromStorage;
 }
 
+export interface UserRecipeTablePreferences {
+  pageNumber: number;
+  itemsPerPage: number;
+  sortBy: Array<{
+    key: string;
+    order: "asc" | "desc";
+  }>;
+}
+
+export function useRecipeTablePreferences(): Ref<UserRecipeTablePreferences> {
+  const fromStorage = useLocalStorage(
+    "recipe-table-preferences",
+    {
+      pageNumber: 1,
+      itemsPerPage: 32,
+      sortBy: [
+        {
+          key: "Title",
+          order: "desc" as const,
+        },
+      ],
+    },
+    { mergeDefaults: true },
+  );
+
+  return fromStorage;
+}
+
 export function useUserExperiencePreferences(): Ref<UserExperiencePreferences> {
   const fromStorage = useLocalStorage(
     "user-experience-preferences",
