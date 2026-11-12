@@ -13,6 +13,13 @@
       :clearable="!!displayRating"
       @update:model-value="updateRating(+$event)"
     />
+    <v-number-input
+      :model-value="displayRating"
+      :precision="1"
+      :control-variant="'hidden'"
+      label="Rating"
+      @update:model-value="updateRating(+$event)"
+    />
   </div>
 </template>
 
