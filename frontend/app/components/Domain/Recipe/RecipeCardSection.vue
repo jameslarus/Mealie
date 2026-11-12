@@ -103,18 +103,87 @@
       </v-menu>
       <ContextMenu
         v-if="!$vuetify.display.smAndDown"
-        :items="[
-          {
-            title: $t('general.toggle-view'),
-            icon: $globals.icons.eye,
-            event: 'toggle-dense-view',
-          },
-        ]"
+        :items="viewMenuItems"
+        @select-dense-card-view="selectCardView(true)"
+        @select-large-card-view="selectCardView(false)"
+        @select-list-view="selectListView(false)"
+        @select-grouped-list-view="selectListView(true)"
         @toggle-dense-view="toggleMobileCards()"
       />
     </v-row>
     <div v-if="recipes && ready">
-      <div class="mt-2">
+      <div v-if="isListView">
+        <v-data-table
+          v-model:page-number="tablePreferences.pageNumber"
+          v-model:items-per-page="tablePreferences.itemsPerPage"
+          v-model:sort-by="tablePreferences.sortBy"
+          class="elevation-0"
+          :striped="'even'"
+          :headers="tableHeaders"
+          :group-by="isGroupedListView ? groupBy : []"
+          :items="recipes"
+        >
+          <template #group-header="{ item, columns, toggleGroup, isGroupOpen }">
+            <tr class="cursor-pointer" @click="toggleGroup(item)">
+              <td :colspan="columns.length">
+                <div class="d-flex align-center">
+                  <v-btn
+                    :icon="isGroupOpen(item) ? '$expand' : '$next'"
+                    color="medium-emphasis"
+                    density="comfortable"
+                    size="small"
+                    variant="outlined"
+                  />
+                  <span class="ms-4">{{ item.value }} ({{ item.items.length }})</span>
+                </div>
+              </td>
+            </tr>
+          </template>
+
+          <template #header.data-table-group>
+            Category
+          </template>
+
+          <template #item.favorite="{ item }">
+            <RecipeFavoriteBadge
+              v-if="isOwnGroup"
+              :recipe-id="item.id ? item.id : ''"
+              show-always
+              color="white"
+            />
+          </template>
+
+          <template #item.name="{ item }">
+            <NuxtLink
+              class="recipe-sortable-list__link"
+              :to="`/g/${groupSlug}/r/${item.slug}`"
+              draggable="true"
+              @dragstart="startRecipeDrag($event, item)"
+            >
+              {{ item.name }}
+            </NuxtLink>
+          </template>
+
+          <template #item.category="{ item }">
+            {{ recipeCategoryLabel(item) || "—" }}
+          </template>
+
+          <template #item.rating="{ item }">
+            <v-rating
+              :model-value="item.rating ? item.rating : 0"
+              density="compact"
+              size="small"
+              @update:model-value="updateRating($event, item)"
+            />
+          </template>
+
+          <template #item.tags="{ item }">
+            {{ recipeTagsLabel(item) || "—" }}
+          </template>
+        </v-data-table>
+      </div>
+
+      <div v-else class="mt-2">
         <v-row v-if="!useMobileCards">
           <v-col
             v-for="recipe in recipes"
@@ -162,7 +231,7 @@
           </v-col>
         </v-row>
       </div>
-      <v-card v-intersect="infiniteScroll" variant="flat" />
+      <v-card v-if="isCardView"v-intersect="infiniteScroll" variant="flat" />
     </div>
     <v-fade-transition>
       <AppLoader
@@ -177,6 +246,7 @@
 
 <script setup lang="ts">
 import { useThrottleFn } from "@vueuse/core";
+import type { RecipeOut, RecipeDraft, RecipeSummary } from "~/lib/api/types/recipe";
 import RecipeCard from "./RecipeCard.vue";
 import RecipeCardMobile from "./RecipeCardMobile.vue";
 import type { UrlPrefixParam } from "./RecipeChips.vue";
@@ -185,6 +255,8 @@ import { useLazyRecipes } from "~/composables/recipes";
 import type { RecipeSummary, TagOut } from "~/lib/api/types/recipe";
 import { useUserSortPreferences } from "~/composables/use-users/preferences";
 import type { RecipeSearchQuery } from "~/lib/api/user/recipes/recipe";
+import { mergeVisibleRecipeOrder } from "~/lib/api/user/recipes/recipe-list-order";
+import type { ContextMenuItem } from "~/composables/use-context-presents";
 
 const REPLACE_RECIPES_EVENT = "replaceRecipes";
 const APPEND_RECIPES_EVENT = "appendRecipes";
@@ -197,6 +269,7 @@ interface Props {
   singleColumn?: boolean;
   recipes?: RecipeSummary[];
   query?: RecipeSearchQuery | null;
+  allowListView?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   disableToolbar: false,
@@ -206,6 +279,7 @@ const props = withDefaults(defineProps<Props>(), {
   singleColumn: false,
   recipes: () => [],
   query: null,
+  allowListView: true,
 });
 
 const emit = defineEmits<{
@@ -232,9 +306,49 @@ const NULLS_LAST_ORDER_BY = ["total_time_seconds"];
 
 const auth = useMealieAuth();
 const { $globals } = useNuxtApp();
+const i18n = useI18n();
+
 const { isOwnGroup } = useLoggedInState();
+
 const useMobileCards = computed(() => {
   return display.smAndDown.value || preferences.value.useMobileCards;
+});
+
+const isListView = computed(() => {
+  return preferences.value.displayAsList;
+});
+
+const isGroupedListView = computed(() => {
+  return preferences.value.displayAsGroupedList;
+});
+
+const isCardView = computed(() => {
+  return !isListView.value;
+});
+
+const viewMenuItems = computed(() => {
+  const items: ContextMenuItem[] = [];
+  items.push({
+    title: i18n.t("general.grouped-list-view"),
+    icon: $globals.icons.formatListGroup,
+    event: "select-grouped-list-view",
+  });
+  items.push({
+    title: i18n.t("general.list-view"),
+    icon: $globals.icons.formatListCheck,
+    event: "select-list-view",
+  });
+  items.push({
+    title: i18n.t("general.card-view"),
+    icon: $globals.icons.viewGridCompact,
+    event: "select-dense-card-view",
+  });
+  items.push({
+    title: i18n.t("general.large-card-view"),
+    icon: $globals.icons.viewGrid,
+    event: "select-large-card-view",
+  });
+  return items;
 });
 
 const displayTitleIcon = computed(() => {
@@ -289,7 +403,7 @@ const queryFilter = computed(() => {
   // }
 });
 
-async function fetchRecipes(pageCount = 1) {
+async function fetchRecipes(pageCount = 1, fetchAll = false) {
   const orderDir = props.query?.orderDirection || preferences.value.orderDirection;
   const orderBy = effectiveOrderBy.value;
   const orderByNullPosition = props.query?.orderByNullPosition
@@ -299,8 +413,8 @@ async function fetchRecipes(pageCount = 1) {
     localQuery._searchSeed = randomSeed.value;
   }
   return await fetchMore(
-    page.value,
-    perPage * pageCount,
+    fetchAll ? 1 : page.value,
+    fetchAll ? -1 : perPage * pageCount,
     orderBy,
     orderDir,
     orderByNullPosition,
@@ -499,8 +613,84 @@ async function navigateRandom() {
   router.push(`/g/${groupSlug.value}/r/${recipe.slug}`);
 }
 
-function toggleMobileCards() {
-  preferences.value.useMobileCards = !preferences.value.useMobileCards;
+function selectCardView(denseCards: boolean) {
+  preferences.value.displayAsList = false;
+  preferences.value.displayAsGroupedList = false;
+  preferences.value.useMobileCards = denseCards;
+}
+
+async function selectListView(grouped: boolean) {
+  preferences.value.displayAsList = true;
+  preferences.value.displayAsGroupedList = grouped;
+}
+
+const tableHeaders = [
+  { title: $t("general.favorites"), key: "favorite", value: item => recipeIsFavorite(item) },
+  { title: $t("general.title"), key: "name" },
+  { title: $t("general.rating"), key: "rating" },
+  { title: $t("tag.tags"), key: "tags", value: item => recipeTagsLabel(item) },
+];
+
+const groupBy = [{ key: "categoryLabel", order: "asc" }];
+
+const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: true });
+
+function recipeCategoryLabel(recipe: RecipeDraft): string {
+  const categories = recipe.recipeCategory;
+  if (categories == null || categories.length === 0) {
+    return "";
+  }
+  else if (categories.length === 1) {
+    return categories[0]?.name?.trim() ?? "";
+  }
+  else if (categories.length === 2) {
+    const firstCategory = categories[0]?.name?.trim() ?? "";
+    const secondCategory = categories[1]?.name?.trim() ?? "";
+    if (firstCategory.toLowerCase() === "dessert" || firstCategory.toLowerCase() === "savory") {
+      return firstCategory + ", " + secondCategory;
+    }
+    else {
+      return secondCategory + ", " + firstCategory;
+    }
+  }
+  else {
+    const categoryNames = categories
+      .map(category => category.name?.trim() ?? "")
+      .filter(Boolean)
+      .sort(collator.compare);
+    return categoryNames.join(", ");
+  }
+}
+
+function recipeTagsLabel(recipe: RecipeDraft): string {
+  return (recipe.tags ?? [])
+    .map(tag => tag.name?.trim() ?? "")
+    .filter(Boolean)
+    .sort(collator.compare)
+    .join(", ");
+}
+
+const { userRatings, refreshUserRatings } = useUserSelfRatings();
+
+function recipeIsFavorite(recipe: RecipeDraft): boolean {
+  const rating = userRatings.value.find(r => r.recipeId === recipe.id);
+  return rating?.isFavorite || false;
+}
+
+function startRecipeDrag(event: DragEvent, recipe: RecipeDraft) {
+  if (recipe.id) {
+    setRecipeDragData(event, { id: recipe.id });
+  }
+}
+
+const { _, setRating } = useUserSelfRatings();
+
+async function updateRating(num: string | number, recipe: RecipeDraft) {
+  console.log("Rating", num);
+  if (recipe.id) {
+    await setRating(recipe.slug ? recipe.slug : "", Number(num), null);
+    recipe.rating = Number(num);
+  }
 }
 </script>
 

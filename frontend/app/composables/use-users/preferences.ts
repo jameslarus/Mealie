@@ -41,6 +41,8 @@ export interface UserRecipePreferences {
   filterNull: boolean;
   sortIcon: string;
   useMobileCards: boolean;
+  displayAsList: boolean;
+  displayAsGroupedList: boolean;
 }
 
 export interface UserShoppingListPreferences {
