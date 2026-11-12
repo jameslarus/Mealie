@@ -154,9 +154,9 @@ class RecipeBulkScraperService(BaseService):
         if self.report is None:
             self.get_report_id("Bulk JSON Import")
 
-        tasks = [_do(item.file_name, item.data) for item in bulk.inputs]
+        tasks = [_do(item.file_name, item.data) for item in bulk.imports]
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        for item, result in zip(bulk.inputs, results, strict=True):
+        for item, result in zip(bulk.imports, results, strict=True):
             if not result or isinstance(result, BaseException):
                 continue
 

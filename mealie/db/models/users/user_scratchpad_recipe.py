@@ -21,7 +21,7 @@ class UserScratchPadRecipe(SqlAlchemyBase, BaseMixins):
     user_id: Mapped[GUID] = mapped_column(GUID, ForeignKey("users.id", ondelete="CASCADE"), index=True)
     recipe_id: Mapped[GUID] = mapped_column(GUID, ForeignKey("recipes.id", ondelete="CASCADE"), index=True)
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    recipe: Mapped["RecipeModel"] = relationship("RecipeModel")
+    recipe: Mapped[RecipeModel] = relationship("RecipeModel")
 
     @auto_init()
     def __init__(self, **_) -> None:

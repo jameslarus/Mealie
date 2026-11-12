@@ -1,7 +1,7 @@
 import asyncio
 import shutil
-from base64 import b64decode
 import tempfile
+from base64 import b64decode
 from logging import Logger
 from pathlib import Path
 
@@ -212,7 +212,7 @@ class RecipeDataService(BaseService):
 
         self.logger.debug(f"File Name Suffix {file_path.suffix}")
         self.logger.debug(f"File Path {file_path}")
-        for b_in in bulk.inputs:
+        for b_in in bulk.imports:
             if b_in.file_name == image_filename:
                 self.logger.debug(f"Found image in bulk import files: {b_in.file_name}")
                 self.write_image(b64decode(b_in.data), file_path.suffix)
