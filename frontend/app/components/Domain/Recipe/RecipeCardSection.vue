@@ -249,6 +249,7 @@ import { useThrottleFn } from "@vueuse/core";
 import type { RecipeOut, RecipeDraft, RecipeSummary } from "~/lib/api/types/recipe";
 import RecipeCard from "./RecipeCard.vue";
 import RecipeCardMobile from "./RecipeCardMobile.vue";
+import RecipeFavoriteBadge from "./RecipeFavoriteBadge.vue";
 import type { UrlPrefixParam } from "./RecipeChips.vue";
 import { useLoggedInState } from "~/composables/use-logged-in-state";
 import { useLazyRecipes } from "~/composables/recipes";
