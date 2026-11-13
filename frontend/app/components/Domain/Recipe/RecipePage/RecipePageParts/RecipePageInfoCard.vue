@@ -67,10 +67,7 @@
               </v-row>
               <div>
                 <!-- Recipe Categories -->
-                <v-card
-                  v-if="recipe.recipeCategory.length > 0"
-                  :class="mb-4"
-                >
+                <v-card :class="mb-4">
                   <v-card-title class="py-2">
                     {{ $t("recipe.categories") }}
                   </v-card-title>
@@ -85,10 +82,7 @@
                   </v-card-text>
                 </v-card>
                 <!-- Recipe Tags -->
-                <v-card
-                  v-if="recipe.tags.length > 0"
-                  class="mb-4"
-                >
+                <v-card class="mb-4">
                   <v-card-title class="py-2">
                     {{ $t("tag.tags") }}
                   </v-card-title>
