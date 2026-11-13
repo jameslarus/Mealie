@@ -65,6 +65,44 @@
                   />
                 </v-col>
               </v-row>
+              <div>
+                <!-- Recipe Categories -->
+                <v-card
+                  v-if="recipe.recipeCategory.length > 0"
+                  :class="mb-4"
+                >
+                  <v-card-title class="py-2">
+                    {{ $t("recipe.categories") }}
+                  </v-card-title>
+                  <v-divider class="mx-2" />
+                  <v-card-text>
+                    <RecipeOrganizerSelector
+                      v-model="recipe.recipeCategory"
+                      :return-object="true"
+                      :show-add="true"
+                      selector-type="categories"
+                    />
+                  </v-card-text>
+                </v-card>
+                <!-- Recipe Tags -->
+                <v-card
+                  v-if="recipe.tags.length > 0"
+                  class="mb-4"
+                >
+                  <v-card-title class="py-2">
+                    {{ $t("tag.tags") }}
+                  </v-card-title>
+                  <v-divider class="mx-2" />
+                  <v-card-text>
+                    <RecipeOrganizerSelector
+                      v-model="recipe.tags"
+                      :return-object="true"
+                      :show-add="true"
+                      selector-type="tags"
+                    />
+                  </v-card-text>
+                </v-card>
+              </div>
             </div>
             <div v-if="hasTime" class="mx-6">
               <RecipeTimeCard

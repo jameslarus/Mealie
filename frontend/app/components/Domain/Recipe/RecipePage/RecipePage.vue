@@ -84,7 +84,7 @@
                 :ingredient-storage-key="ingredientStorageKey"
                 class="pr-2"
               />
-              <RecipePageOrganizers v-if="$vuetify.display.mdAndUp" v-model="recipe" class="pr-2" @item-selected="chipClicked" />
+              <!-- <RecipePageOrganizers v-if="$vuetify.display.mdAndUp" v-model="recipe" class="pr-2" @item-selected="chipClicked" /> -->
             </v-col>
             <!--
               the right column is always rendered, but it's layout width is determined by where the left column is
