@@ -74,10 +74,19 @@
                   <v-divider class="mx-2" />
                   <v-card-text>
                     <RecipeOrganizerSelector
+                      v-if="isEditMode"
                       v-model="recipe.recipeCategory"
                       :return-object="true"
                       :show-add="true"
                       selector-type="categories"
+                    />
+                    <RecipeChips
+                      v-else
+                      class="recipe-card-categories"
+                      :truncate="false"
+                      :items="recipe.recipeCategory"
+                      :title="false"
+                      small
                     />
                   </v-card-text>
                 </v-card>
@@ -89,10 +98,19 @@
                   <v-divider class="mx-2" />
                   <v-card-text>
                     <RecipeOrganizerSelector
+                      v-if="isEditMode"
                       v-model="recipe.tags"
                       :return-object="true"
                       :show-add="true"
                       selector-type="tags"
+                    />
+                    <RecipeChips
+                      v-else
+                      class="recipe-card-tags"
+                      :truncate="false"
+                      :items="recipe.tags"
+                      :title="false"
+                      small
                     />
                   </v-card-text>
                 </v-card>
@@ -134,6 +152,7 @@ import UserAvatar from "~/components/Domain/User/UserAvatar.vue";
 import { useUserStore } from "~/composables/store/use-user-store";
 import type { RecipeOut } from "~/lib/api/types/recipe";
 import type { UserSummary } from "~/lib/api/types/user";
+import { usePageState } from "~/composables/recipe-page/shared-state";
 
 interface Props {
   recipe: RecipeOut;
@@ -150,6 +169,7 @@ const { isOwnGroup } = useLoggedInState();
 // group members aren't visible outside the group, so don't fetch them
 const users = isOwnGroup.value ? useUserStore().store : ref<UserSummary[]>([]);
 const owner = computed(() => users.value.find(u => u.id === props.recipe.userId));
+const { isEditMode } = usePageState(props.recipe.slug);
 
 const hasTime = computed(() => {
   const { prepTime, totalTime, performTime, prepTimeSeconds, totalTimeSeconds, performTimeSeconds } = props.recipe;
